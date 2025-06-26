@@ -34,7 +34,8 @@ html {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	height: 100vh;
+	padding: 4rem 0;
+	min-height: 100dvh;
 }
 
 /* Card styles */
@@ -133,7 +134,7 @@ form {
 	color: var(--gray-light);
 }
 
-.remember-me {
+.text-checkbox {
 	display: flex;
 	align-items: center;
 	gap: 0.4rem;
@@ -170,13 +171,13 @@ input[type="checkbox"] {
 }
 
 /* Link styles */
-a {
+.link {
 	color: var(--primary-orange);
 	text-decoration: none;
 	font-weight: 500;
 }
 
-a:hover {
+.link:hover {
 	text-decoration: underline;
 }
 
