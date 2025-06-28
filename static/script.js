@@ -28,4 +28,9 @@ document.addEventListener("DOMContentLoaded", () => {
 			}
 		});
 	}
+
+	// Sign Up: Handle button click
+	document.getElementById("signup-btn").addEventListener("click", () => {
+		window.location.href = "onboarding.html";
+	});
 });
