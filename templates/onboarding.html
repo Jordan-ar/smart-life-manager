@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Onboarding | Smart Fitness Planner</title>
+		<link rel="stylesheet" href="/static/style.css">
+		<!-- Importing Font Awesome for icons -->
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+		<script src="/static/onboarding.js" defer></script>
+	</head>
+
+	<body>
+
+		<div class="welcome-container">
+
+			<div id="progress-bar" class="progress-bar-container"></div>
+
+			<!-- Step 0: Welcome -->
+			<div id="welcome-screen" class="welcome-card">
+				<h1>Let's create a fitness plan designed just for you!</h1>
+				<button id="start-btn" class="btn primary full-btn">Start</button>
+			</div>
+
+			<!-- Step 1: Motivation-->
+			<div id="question-step-1" class="welcome-card hidden">
+				<h1>What is your main motivation?</h1>
+				<div class="buttons">
+					<button class="option-btn" data-value="lose_weight">
+						<i class="fas fa-scale-balanced"></i> Lose Weight
+					</button>
+					<button class="option-btn" data-value="gain_muscle">
+						<i class="fas fa-dumbbell"></i> Gain Muscle
+					</button>
+					<button class="option-btn" data-value="get_healthy">
+						<i class="fas fa-heart"></i> Get Healthy
+					</button>
+					<button class="option-btn" data-value="improve_endurance">
+						<i class="fas fa-running"></i> Improve Endurance
+					</button>
+				</div>
+				<button id="next-btn" class="btn primary full-btn" disabled>Next</button>
+			</div>
+
+			<!-- Step 2: Gender -->
+			<div id="question-step-2" class="welcome-card hidden">
+				<h1>What is your gender?</h1>
+				<div class="buttons">
+					<button class="option-btn" data-value="male">
+						<i class="fas fa-mars"></i> Male
+					</button>
+					<button class="option-btn" data-value="female">
+						<i class="fas fa-venus"></i> Female
+					</button>
+					<button class="option-btn" data-value="non_binary">
+						<i class="fas fa-genderless"></i> Non-binary
+					</button>
+					<button class="option-btn" data-value="prefer_not_to_say">
+						<i class="fas fa-user-secret"></i> Prefer not to say
+					</button>
+				</div>
+				<div class="step-buttons">
+					<button id="back-btn-2" class="btn secondary full-btn">Back</button>
+					<button id="next-btn-2" class="btn primary full-btn" disabled>Next</button>
+				</div>
+			</div>
+
+			<!-- Step 3: Age -->
+			<div id="question-step-3" class="welcome-card hidden">
+				<h1> How old are you?</h1>
+				<label for="age-input" class="sr-only">Age</label>
+				<input type="number" id="age-input" name="age" class="form-input" min="13" max="120" placeholder="Enter your age">
+				<div class="step-buttons">
+					<button id="back-btn-3" class="btn secondary full-btn">Back</button>
+					<button id="next-btn-3" class="btn primary full-btn" disabled>Next</button>
+				</div>
+			</div>
+
+			<!-- Step 4: Height -->
+			<div id="question-step-4" class="welcome-card hidden">
+				<h1>What’s your height?</h1>
+				<div id="height-toggle" class="toggle-buttons">
+					<button type="button" class="toggle-btn active" data-unit="imperial">ft</button>
+					<button type="button" class="toggle-btn" data-unit="metric">cm</button>
+				</div>
+				<!-- Inputs: ft/in -->
+				<div id="imperial-inputs" class="form-row">
+					<label for="feet-input" class="sr-only">Feet</label>
+					<input type="number" id="feet-input" class="form-input" placeholder="Feet" min="3" max="8">
+					<label for="inches-input" class="sr-only">Inches</label>
+					<input type="number" id="inches-input" class="form-input" placeholder="Inches" min="0" max="11">
+				</div>
+				<!-- Inputs: cm-->
+				<div id="metric-inputs" class="form-row hidden">
+					<label for="cm-input" class="sr-only">Centimeters</label>
+					<input type="number" id="cm-input" class="form-input" placeholder="Centimeters" min="90" max="250">
+				</div>
+				<div class="step-buttons">
+					<button id="back-btn-4" class="btn secondary full-btn">Back</button>
+					<button id="next-btn-4" class="btn primary full-btn" disabled>Next</button>
+				</div>
+			</div>
+
+			<!-- Step 5: Current Weight -->
+			<div id="question-step-5" class="welcome-card hidden">
+				<h1>What’s your current weight?</h1>
+
+				<!-- Toggle kg/lbs -->
+				<div id="weight-toggle" class="toggle-buttons">
+					<button type="button" class="toggle-btn active" data-unit="lbs">lbs</button>
+					<button type="button" class="toggle-btn" data-unit="kg">kg</button>
+				</div>
+
+				<!-- Input lbs -->
+				<div id="lbs-input-group">
+					<label for="weight-input-lbs" class="sr-only">Weight in lbs</label>
+					<input type="number" id="weight-input-lbs" class="form-input" placeholder="Enter your weight in lbs" min="66" max="550">
+				</div>
+
+				<!-- Input kg -->
+				<div id="kg-input-group" class="hidden">
+					<label for="weight-input-kg" class="sr-only">Weight in kg</label>
+					<input type="number" id="weight-input-kg" class="form-input" placeholder="Enter your weight in kg" min="30" max="250">
+				</div>
+
+				<div class="step-buttons">
+					<button id="back-btn-5" class="btn secondary full-btn">Back</button>
+					<button id="next-btn-5" class="btn primary full-btn" disabled>Next</button>
+				</div>
+			</div>
+
+			<!-- Step 6: Ideal Weight -->
+			<div id="question-step-6" class="welcome-card hidden">
+				<h1>What’s your goal weight?</h1>
+
+				<!-- Toggle kg/lbs -->
+				<div id="goal-weight-toggle" class="toggle-buttons">
+					<button type="button" class="toggle-btn active" data-unit="lbs">lbs</button>
+					<button type="button" class="toggle-btn" data-unit="kg">kg</button>
+				</div>
+
+				<!-- Input lbs -->
+				<div id="goal-lbs-input-group">
+					<label for="goal-weight-input-lbs" class="sr-only">Goal weight in lbs</label>
+					<input type="number" id="goal-weight-input-lbs" class="form-input" placeholder="Enter your goal weight in lbs" min="66" max="550">
+				</div>
+
+				<!-- Input kg -->
+				<div id="goal-kg-input-group" class="hidden">
+					<label for="goal-weight-input-kg" class="sr-only">Goal weight in kg</label>
+					<input type="number" id="goal-weight-input-kg" class="form-input" placeholder="Enter your goal weight in kg" min="30" max="250">
+				</div>
+
+				<div class="step-buttons">
+					<button id="back-btn-6" class="btn secondary full-btn">Back</button>
+					<button id="next-btn-6" class="btn primary full-btn" disabled>Next</button>
+				</div>
+			</div>
+
+			<!-- Step 7: Speed -->
+			<div id="question-step-7" class="welcome-card hidden">
+				<h1>How fast do you want to reach your goal?</h1>
+				<div class="buttons">
+					<button class="option-btn" data-value="Slow and steady">
+						<i class="fas fa-hourglass-start"></i> Slow and steady
+					</button>
+					<button class="option-btn" data-value="Balanced pace">
+						<i class="fas fa-walking"></i> Balanced pace
+					</button>
+					<button class="option-btn" data-value="As fast as possible (healthy)">
+						<i class="fas fa-running"></i> Fast (but healthy)
+					</button>
+				</div>
+				<div class="step-buttons">
+					<button id="back-btn-7" class="btn secondary full-btn">Back</button>
+					<button id="next-btn-7" class="btn primary full-btn" disabled>Next</button>
+				</div>
+			</div>
+
+			<!-- Step 8: Available Days -->
+			<div id="question-step-8" class="welcome-card hidden">
+				<h1>How many days per week can you commit to training?</h1>
+				<div class="buttons">
+					<button class="option-btn" data-value="1-2">
+						<i class="fas fa-calendar-day"></i> 1–2 days
+					</button>
+					<button class="option-btn" data-value="3-4">
+						<i class="fas fa-calendar-week"></i> 3–4 days
+					</button>
+					<button class="option-btn" data-value="5-6">
+						<i class="fas fa-calendar-alt"></i> 5–6 days
+					</button>
+					<button class="option-btn" data-value="7">
+						<i class="fas fa-calendar-check"></i> 7 days
+					</button>
+				</div>
+				<div class="step-buttons">
+					<button id="back-btn-8" class="btn secondary full-btn">Back</button>
+					<button id="next-btn-8" class="btn primary full-btn" disabled>Next</button>
+				</div>
+			</div>
+
+			<!-- Step 9: Time Available -->
+			<div id="question-step-9" class="welcome-card hidden">
+				<h1>How much time can you dedicate per day?</h1>
+				<div class="buttons">
+					<button class="option-btn" data-value="10-20">
+						<i class="fas fa-clock"></i> 10–20 min
+					</button>
+					<button class="option-btn" data-value="30-40">
+						<i class="fas fa-stopwatch"></i> 30–40 min
+					</button>
+					<button class="option-btn" data-value="50-60">
+						<i class="fas fa-hourglass-half"></i> 50–60 min
+					</button>
+					<button class="option-btn" data-value="90-120">
+						<i class="fas fa-hourglass-end"></i> 90–120 min
+					</button>
+				</div>
+				<div class="step-buttons">
+					<button id="back-btn-9" class="btn secondary full-btn">Back</button>
+					<button id="next-btn-9" class="btn primary full-btn" disabled>Next</button>
+				</div>
+			</div>
+
+			<!-- Step 10: Activity Level -->
+			<div id="question-step-10" class="welcome-card hidden">
+				<h1>How would you describe your current physical activity level?</h1>
+				<div class="buttons">
+					<button class="option-btn" data-value="Sedentary">
+						<i class="fas fa-bed"></i> Sedentary
+					</button>
+					<button class="option-btn" data-value="Occasionally active">
+						<i class="fas fa-person-walking"></i> Occasionally active
+					</button>
+					<button class="option-btn" data-value="Frequently active">
+						<i class="fas fa-dumbbell"></i> Frequently active
+					</button>
+					<button class="option-btn" data-value="Very fit">
+						<i class="fas fa-bolt"></i> Very fit / Pro level
+					</button>
+				</div>
+				<div class="step-buttons">
+					<button id="back-btn-10" class="btn secondary full-btn">Back</button>
+					<button id="next-btn-10" class="btn primary full-btn" disabled>Next</button>
+				</div>
+			</div>
+
+			<!-- Step 11: Favorite Activities -->
+			<div id="question-step-11" class="welcome-card hidden">
+				<h1>What kind of activities do you enjoy?</h1>
+				<p>You can select more than one option</p>
+				<div class="buttons">
+					<label class="option-checkbox"><input type="checkbox" value="Weights"> <i class="fas fa-dumbbell"></i> Weights / Gym</label>
+					<label class="option-checkbox"><input type="checkbox" value="Yoga"> <i class="fas fa-spa"></i> Yoga / Pilates</label>
+					<label class="option-checkbox"><input type="checkbox" value="Cardio"> <i class="fas fa-heart-pulse"></i> Cardio / Running</label>
+					<label class="option-checkbox"><input type="checkbox" value="Team sports"> <i class="fas fa-basketball"></i> Team Sports</label>
+					<label class="option-checkbox"><input type="checkbox" value="Fitness games"> <i class="fas fa-gamepad"></i> Fitness Games</label>
+					<label class="option-checkbox"><input type="checkbox" value="No equipment"> <i class="fas fa-person"></i> No equipment</label>
+					<label class="option-checkbox"><input type="checkbox" value="Dancing"> <i class="fas fa-music"></i> Dancing</label>
+					<label class="option-checkbox"><input type="checkbox" value="Walking"> <i class="fas fa-shoe-prints"></i> Walking</label>
+				</div>
+				<div class="step-buttons">
+					<button id="back-btn-11" class="btn secondary full-btn">Back</button>
+					<button id="next-btn-11" class="btn primary full-btn" disabled>Next</button>
+				</div>
+			</div>
+
+			<!-- Step 12: Available Resources -->
+			<div id="question-step-12" class="welcome-card hidden">
+				<h1>What resources do you currently have?</h1>
+				<p>You can select more than one option</p>
+				<div class="buttons">
+					<label class="option-checkbox"><input type="checkbox" value="Dumbbells"> <i class="fas fa-dumbbell"></i> Dumbbells</label>
+					<label class="option-checkbox"><input type="checkbox" value="Fitness Console"> <i class="fas fa-gamepad"></i> Fitness Console</label>
+					<label class="option-checkbox"><input type="checkbox" value="Yoga mat"> <i class="fas fa-mattress-pillow"></i> Yoga mat</label>
+					<label class="option-checkbox"><input type="checkbox" value="Stationary Bike"> <i class="fas fa-bicycle"></i> Stationary Bike</label>
+					<label class="option-checkbox"><input type="checkbox" value="Space at home"> <i class="fas fa-house"></i> Space at home</label>
+					<label class="option-checkbox"><input type="checkbox" value="Gym membership"> <i class="fas fa-id-card"></i> Gym membership</label>
+					<label class="option-checkbox"><input type="checkbox" value="Just my motivation"> <i class="fas fa-star"></i> Just my motivation</label>
+				</div>
+				<div class="step-buttons">
+					<button id="back-btn-12" class="btn secondary full-btn">Back</button>
+					<button id="next-btn-12" class="btn primary full-btn">Create Plan</button>
+				</div>
+			</div>
+
+		</div>
+
+	</body>
+</html>
