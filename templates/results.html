@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Plan Ready | Smart Fitness Planner</title>
+		<link rel="stylesheet" href="/static/style.css">
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+		<script src="/static/script.js" defer></script>
+	</head>
+
+	<body>
+
+		<div class="welcome-container">
+			<div id="plan-ready-screen" class="welcome-card">
+				<h1> <i class="fas fa-check-circle icon"></i> Your Plan is Ready!</h1>
+				<div class="buttons">
+					<div id="estimated-time" class="option-btn selected">
+						<i class="fas fa-hourglass-half"></i> Duration: 10 weeks
+					</div>
+					<div id="goal-summary" class="option-btn selected">
+						<i class="fas fa-bullseye"></i> Goal: Lose 8 kg
+					</div>
+					<div id="frequency-summary" class="option-btn selected">
+						<i class="fas fa-calendar-check"></i> Frequency: 4x / week
+					</div>
+					<div id="time-summary" class="option-btn selected">
+						<i class="fas fa-stopwatch"></i> Time: 30 mins/day
+					</div>
+				</div>
+				<a href="/templates/dashboard.html" id="start-plan-btn" class="btn primary full-btn"> Start My Plan</a>
+			</div>
+		</div>
+
+	</body>
+</html>
