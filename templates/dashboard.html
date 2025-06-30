@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Dashboard | Smart Fitness Planner</title>
+		<link rel="stylesheet" href="/static/style.css">
+		<link rel="stylesheet" href="/static/dashboard.css">
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+	</head>
+
+	<body>
+
+		<div class="dashboard-container">
+
+			<!-- Header -->
+			<div class="profile-section">
+				<i class="fas fa-bolt icon-header"></i>
+				<h1>Let's Workout</h1>
+			</div>
+
+			<!-- Progress of the Routine -->
+			<div class="card workout-progress-card">
+				<div class="group-texts">
+					<h2 class="progress-title">Workout Progress</h2>
+					<p class="progress-subtext">5 exercises left</p>
+				</div>
+				<!-- Donut percentage -->
+				<div class="donut-container">
+					<svg class="donut" viewBox="0 0 36 36">
+						<path class="donut-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+						<path class="donut-ring" stroke-dasharray="40, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+						<text x="18" y="20.5" class="donut-text">40%</text>
+					</svg>
+				</div>
+			</div>
+
+			<!-- Activity summary for the day -->
+			<div class="card">
+				<p class="card-title">Today's Activity</p>
+				<div class="activity-summary">
+					<div class="calories-box">
+						<i class="fas fa-fire icon"></i>
+						<p>400<br><small>calories</small></p>
+					</div>
+					<!-- Some exercises for the Day -->
+					<div class="activity-list">
+						<div class="activity-item"><span>Push-ups</span><span>15</span></div>
+						<div class="activity-item"><span>Squats</span><span>20</span></div>
+						<div class="activity-item"><span>Lunges</span><span>15</span></div>
+						<a href="#" class="link small-link">View full routine →</a> <!-- This will lead to the calendar and the full workout -->
+					</div>
+				</div>
+			</div>
+
+			<!-- Statistics Summary -->
+			<div class="section-two">
+				<p class="section-title">Overall Status</p>
+				<a href="#" class="link small-link">See more →</a>
+			</div>
+
+			<!-- Total Calories Burned -->
+			<div class="card overall-card">
+				<div class="overall-icon">
+					<i class="fas fa-fire-alt"></i>
+				</div>
+
+				<div class="group-texts">
+					<p class="overall-title">Calories Burned</p>
+					<p class="overall-number">10,000 kcal</p>
+				</div>
+
+				<!-- Donut percentage -->
+				<div class="donut-container small">
+					<svg class="donut" viewBox="0 0 36 36">
+						<path class="donut-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+						<path class="donut-ring" stroke-dasharray="37, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+						<text x="18" y="20.5" class="donut-text">37%</text>
+					</svg>
+				</div>
+
+			</div>
+
+			<!-- Total goal that has been completed -->
+			<div class="card overall-card">
+				<div class="overall-icon">
+					<i class="fas fa-weight icon"></i>
+				</div>
+
+				<div class="group-texts">
+					<p class="overall-title">Weight Loss</p>
+					<p class="overall-number">9 kg</p>
+				</div>
+
+				<!-- Donut percentage -->
+				<div class="donut-container small">
+					<svg class="donut" viewBox="0 0 36 36">
+						<path class="donut-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+						<path class="donut-ring" stroke-dasharray="80, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+						<text x="18" y="20.5" class="donut-text">80%</text>
+					</svg>
+				</div>
+
+			</div>
+
+			<!-- Week Streak -->
+			<div class="card streak-card">
+				<p class="card-title">Keep going! Daily Streak</p>
+				<div class="streak-stars">
+					<i class="fas fa-star filled"></i>
+					<i class="fas fa-star filled"></i>
+					<i class="fas fa-star filled"></i>
+					<i class="fas fa-star filled"></i>
+					<i class="far fa-star"></i>
+					<i class="far fa-star"></i>
+				</div>
+			</div>
+
+			<!-- Nav Menu -->
+			<nav class="bottom-nav">
+				<a href="#"><i class="fas fa-home"></i></a>
+				<a href="#"><i class="fas fa-calendar-alt"></i></a>
+				<a href="#"><i class="fas fa-chart-line"></i></a>
+				<a href="#"><i class="fas fa-user"></i></a>
+			</nav>
+
+
+		</div>
+
+	</body>
+</html>
