@@ -1,0 +1,259 @@
+/* General Layout */
+.dashboard-container {
+	max-width: 420px;
+	margin: 0 auto;
+	padding: 2rem 1rem;
+}
+
+.profile-section {
+	display: flex;
+	align-items: baseline;
+	justify-content: center;
+	gap: 0.75rem;
+}
+
+.bottom-nav {
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	background: var(--white-transparent);
+	backdrop-filter: blur(14px);
+	display: flex;
+	justify-content: space-around;
+	align-items: center;
+	padding: 0.8rem 0;
+	border-top: 1px solid var(--white-border);
+	box-shadow: 0 -4px 10px var(--box-shadow-orange);
+	z-index: 99;
+}
+
+.bottom-nav a {
+	color: var(--primary-text);
+	font-size: 1.2rem;
+	transition: all 0.2s ease;
+}
+
+.bottom-nav a:hover {
+	color: var(--primary-orange);
+}
+
+/* Card Styles */
+.card {
+	background: var(--white-transparent);
+	backdrop-filter: blur(18px);
+	-webkit-backdrop-filter: blur(18px);
+	border-radius: 18px;
+	border: 1px solid var(--white-border);
+	box-shadow: 0 0 12px var(--box-shadow-orange);
+	padding: 1.5rem;
+	margin-bottom: 1.5rem;
+	color: var(--primary-text);
+}
+
+.card:hover {
+	transform: translateY(-4px);
+	box-shadow: 0 8px 16px var(--box-shadow-orange);
+	transition: all 0.3 ease;
+}
+
+/* Workout Progress */
+.workout-progress-card {
+	display: flex;
+	align-items: center;
+	justify-content: space-around;
+	gap: 2.5rem;
+	padding: 1rem;
+	min-height: auto;
+}
+
+.group-texts {
+	display: flex;
+	flex-direction: column;
+	transform: translateY(15px);
+}
+
+.progress-title {
+	font-size: 1.3rem;
+	color: var(--blue-light);
+	margin-bottom: 0.25rem;
+}
+
+.progress-subtext {
+	font-size: 0.85rem;
+	color: var(--gray-light);
+}
+
+/* Activity section */
+.card-title {
+	font-size: 1rem;
+	font-weight: 600;
+	margin-bottom: 1rem;
+	color: var(--blue-light);
+}
+
+.activity-summary {
+	display: flex;
+	align-items: flex-start;
+	gap: 1.5rem;
+}
+
+.calories-box {
+	background: var(--white-blur);
+	padding: 1rem;
+	border-radius: 16px;
+	text-align: center;
+	font-weight: 600;
+	font-size: 0.9rem;
+	box-shadow: 0 4px 6px var(--box-shadow-orange);
+}
+
+.calories-box i {
+	font-size: 1.3rem;
+	color: var(--primary-orange);
+	margin-bottom: 0.5rem;
+	display: block;
+}
+
+.activity-list {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.activity-item {
+	display: flex;
+	justify-content: space-between;
+	background: var(--white-blur);
+	padding: 0.6rem 1rem;
+	border-radius: 12px;
+	font-size: 0.9rem;
+}
+
+/* Donuts */
+.donut-container {
+	width: 88px;
+	height: 88px;
+}
+
+.donut-container.small {
+	width: 68px;
+	height: 68px;
+}
+
+.donut {
+	width: 100%;
+	height: 100%;
+}
+
+.donut-bg {
+	fill: none;
+	stroke: var(--white-border);
+	stroke-width: 2.5;
+}
+
+.donut-ring {
+	fill: none;
+	stroke: var(--primary-orange);
+	stroke-width: 2.5;
+	stroke-linecap: round;
+	transition: stroke-dasharray 0.5s ease;
+}
+
+.donut-text {
+	fill: var(--primary-text);
+	font-size: 0.4rem;
+	text-anchor: middle;
+	dominant-baseline: middle;
+	font-weight: 600;
+}
+
+/* Overall section */
+.overall-card {
+	display: flex;
+	align-items: center;
+	justify-content: space-around;
+	padding: 1rem 0.5rem;
+}
+
+.overall-icon {
+	width: 32px;
+	height: 32px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--primary-orange);
+	font-size: 2.5rem;
+	flex-shrink: 0;
+}
+
+.overall-icon .fa-weight {
+	font-size: 2.5rem;
+}
+
+.overall-title {
+	font-size: 1rem;
+	color: var(--primary-text);
+	margin-bottom: 0.2rem;
+}
+
+.overall-number {
+	font-weight: 600;
+	font-size: 0.8rem;
+	color: var(--gray-medium);
+}
+
+/* Streaks */
+.streak-card {
+	text-align: center;
+}
+
+.streak-stars {
+	margin-top: 0.5rem;
+	display: flex;
+	justify-content: space-around;
+}
+
+.streak-stars i {
+	font-size: 2rem;
+	color: var(--primary-orange);
+}
+
+.streak-stars .filled {
+	color: var(--primary-orange);
+}
+
+.streak-stars .far {
+	color: var(--gray-medium);
+}
+
+/* Other Styles */
+.section-title {
+	font-size: 1.5rem;
+	color: var(--blue-light);
+	font-weight: 600;
+	margin-bottom: 2rem;
+	margin-top: 1rem;
+	text-align: center;
+}
+
+.section-two {
+	display: flex;
+	justify-content: space-around;
+	align-items: baseline;
+	margin-bottom: 1px;
+}
+
+.icon-header {
+	font-size: 1.5rem;
+	color: var(--blue-light);
+}
+
+.small-link {
+	font-size: 0.85rem;
+	color: var(--gray-light);
+	text-align: right;
+	margin-top: 0.5rem;
+	display: block;
+}
