@@ -1,0 +1,326 @@
+/* Calendar Page */
+
+/* Week Calendar */
+.week-bar {
+	display: flex;
+	justify-content: space-around;
+	margin: 1.5rem auto;
+	max-width: 420px;
+}
+
+.day-circle {
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 600;
+	color: var(--primary-text);
+	cursor: pointer;
+	transition: all 0.3s ease;
+	border: 1px solid var(--white-border);
+}
+
+.day-circle.active {
+	background: var(--primary-orange);
+	box-shadow: 0 0 8px var(--box-shadow-glow);
+	color: white;
+}
+
+.day-circle.today {
+	background: var(--white-blur);
+	color: white;
+}
+
+.day-circle.today:not(.active) {
+	box-shadow: none;
+}
+
+.day-circle.today.active {
+	background-color: var(--primary-orange);
+	box-shadow: 0 0 8px var(--box-shadow-glow);
+}
+
+/* Exercises card */
+.exercise-title {
+	margin: 1rem 0 0.5rem;
+	color: var(--blue-light);
+	text-align: left;
+}
+
+#completion-message {
+	text-align: center;
+	margin-top: 1rem;
+	display: none;
+	font-weight: bold;
+	color: var(--primary-orange);
+}
+
+.exercise-card {
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 1rem;
+	padding: 0.7rem 1rem;
+	background: var(--white-blur);
+	border-radius: 14px;
+	box-shadow: 0 4px 6px var(--box-shadow-orange);
+	margin-bottom: 0.7rem;
+	cursor: pointer;
+}
+
+.exercise-card.completed {
+	background: rgba(255, 193, 7, 0.1);
+	text-decoration: line-through;
+	opacity: 0.85;
+}
+
+.exercise-card i {
+	color: var(--primary-orange);
+	cursor: pointer;
+}
+
+.exercise-text {
+	flex-grow: 1;
+}
+
+.circle-check {
+	width: 20px;
+	height: 20px;
+	border: 2px solid var(--gray-light);
+	border-radius: 50%;
+	cursor: pointer;
+	transition: all 0.3s ease;
+}
+
+.circle-check.checked {
+	background-color: var(--primary-orange);
+	border-color: var(--primary-orange);
+	box-shadow: 0 0 4px var(--primary-orange);
+}
+
+.check-icon {
+	color: var(--gray-light);
+	cursor: pointer;
+	transition: all 0.3s ease;
+}
+
+.check-icon.checked {
+	color: var(--primary-orange);
+}
+
+/* Modal for explanation */
+.modal {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	z-index: 999;
+	background: radial-gradient(circle at top right, #101d42, #060613 80%);
+}
+
+#exercise-modal {
+	display: none;
+}
+
+.modal-content {
+	padding: 2rem;
+	border-radius: 20px;
+	max-width: 320px;
+	width: 90%;
+	position: relative;
+	text-align: center;
+	background: var(--white-transparent);
+	backdrop-filter: blur(18px);
+	-webkit-backdrop-filter: blur(18px);
+	border: 1px solid var(--white-border);
+	box-shadow: 0 0 12px var(--box-shadow-orange);
+}
+
+.close-modal {
+	position: absolute;
+	top: 10px;
+	right: 15px;
+	font-size: 1.5rem;
+	cursor: pointer;
+	color: var(--primary-orange);
+}
+
+#modal-exercise-image {
+	max-width: 100%;
+	border-radius: 12px;
+	margin-bottom: 1rem;
+}
+
+.modal-exercise-title {
+	font-size: 1.3rem;
+	color: var(--primary-orange);
+	margin-bottom: 1rem;
+}
+
+.modal-info {
+	text-align: left;
+	font-size: 0.95rem;
+	color: var(--primary-text);
+	margin-bottom: 1rem;
+}
+
+.modal-info i {
+	color: var(--primary-orange);
+	margin-right: 0.5rem;
+}
+
+.modal-info p {
+	margin: 0.3rem 0;
+	display: flex;
+	align-items: center;
+}
+
+.modal-description {
+	font-size: 0.95rem;
+	color: var(--gray-medium);
+	text-align: left;
+	margin-top: 0.5rem;
+	line-height: 1.4;
+}
+
+
+/* Statistics Page */
+
+/* General Layout */
+.stats-container {
+	max-width: 420px;
+	color: var(--primary-text);
+	margin: 2rem auto;
+	padding: 2rem 1rem;
+}
+
+.stats-container h1,
+.stats-container h2 {
+	text-align: center;
+	color: var(--blue-light);
+	margin-bottom: 1.5rem;
+}
+
+.card-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+	gap: 1rem;
+	margin-bottom: 2.5rem;
+}
+
+.stat-card {
+	background: var(--white-transparent);
+	border: 1px solid var(--white-border);
+	backdrop-filter: blur(16px);
+	-webkit-backdrop-filter: blur(16px);
+	box-shadow: 0 0 12px var(--box-shadow-orange);
+	padding: 1rem;
+	border-radius: 16px;
+	text-align: center;
+	font-size: 0.95rem;
+	line-height: 1.4;
+	font-weight: 500;
+}
+
+/* Calendar section */
+.calendar-container {
+	margin-bottom: 3rem;
+}
+
+#calendar {
+	display: grid;
+	grid-template-columns: repeat(7, 1fr);
+	gap: 6px;
+	justify-content: center;
+	max-width: 350px;
+	margin: auto;
+}
+
+#calendar div {
+	width: 38px;
+	height: 38px;
+	background: var(--white-blur);
+	color: var(--primary-text);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 8px;
+	font-size: 0.85rem;
+	font-weight: 500;
+}
+
+#calendar .active-day {
+	background: var(--gradient-orange);
+	color: #fff;
+	box-shadow: 0 0 10px var(--box-shadow-glow);
+}
+
+canvas {
+	display: block;
+	max-width: 100%;
+	margin: 1rem auto 2rem;
+	background: var(--white-transparent);
+	padding: 1rem;
+	border-radius: 20px;
+	box-shadow: 0 0 8px var(--box-shadow-orange);
+}
+
+/* Insights */
+.insights ul,
+.extras ul {
+	list-style: none;
+	padding-left: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 0.6rem;
+	font-size: 0.95rem;
+	margin-top: 0.5rem;
+}
+
+.insights li,
+.extras li {
+	background: var(--white-blur);
+	padding: 0.8rem 1rem;
+	border-radius: 12px;
+	box-shadow: 0 4px 6px var(--box-shadow-orange);
+	color: var(--primary-text);
+}
+
+/* Goal Progress */
+.goal-container {
+	text-align: center;
+	margin-top: 3rem;
+}
+
+.goal-feedback {
+	color: var(--gray-light);
+	margin-top: 1rem;
+	font-size: 0.9rem;
+}
+
+.donut-wrapper {
+	position: relative;
+	display: inline-block;
+	width: 200px;
+	height: 200px;
+	margin: 0 auto;
+}
+
+.donut-center {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	color: var(--primary-orange);
+	font-size: 1rem;
+	font-weight: 600;
+	text-align: center;
+	line-height: 1.2;
+	pointer-events: none;
+}
