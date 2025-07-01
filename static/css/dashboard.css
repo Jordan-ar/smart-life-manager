@@ -1,62 +1,3 @@
-/* General Layout */
-.dashboard-container {
-	max-width: 420px;
-	margin: 0 auto;
-	padding: 2rem 1rem;
-}
-
-.profile-section {
-	display: flex;
-	align-items: baseline;
-	justify-content: center;
-	gap: 0.75rem;
-}
-
-.bottom-nav {
-	position: fixed;
-	bottom: 0;
-	left: 0;
-	width: 100%;
-	background: var(--white-transparent);
-	backdrop-filter: blur(14px);
-	display: flex;
-	justify-content: space-around;
-	align-items: center;
-	padding: 0.8rem 0;
-	border-top: 1px solid var(--white-border);
-	box-shadow: 0 -4px 10px var(--box-shadow-orange);
-	z-index: 99;
-}
-
-.bottom-nav a {
-	color: var(--primary-text);
-	font-size: 1.2rem;
-	transition: all 0.2s ease;
-}
-
-.bottom-nav a:hover {
-	color: var(--primary-orange);
-}
-
-/* Card Styles */
-.card {
-	background: var(--white-transparent);
-	backdrop-filter: blur(18px);
-	-webkit-backdrop-filter: blur(18px);
-	border-radius: 18px;
-	border: 1px solid var(--white-border);
-	box-shadow: 0 0 12px var(--box-shadow-orange);
-	padding: 1.5rem;
-	margin-bottom: 1.5rem;
-	color: var(--primary-text);
-}
-
-.card:hover {
-	transform: translateY(-4px);
-	box-shadow: 0 8px 16px var(--box-shadow-orange);
-	transition: all 0.3 ease;
-}
-
 /* Workout Progress */
 .workout-progress-card {
 	display: flex;
@@ -85,13 +26,6 @@
 }
 
 /* Activity section */
-.card-title {
-	font-size: 1rem;
-	font-weight: 600;
-	margin-bottom: 1rem;
-	color: var(--blue-light);
-}
-
 .activity-summary {
 	display: flex;
 	align-items: flex-start;
@@ -256,4 +190,11 @@
 	text-align: right;
 	margin-top: 0.5rem;
 	display: block;
+}
+
+.profile-section {
+	display: flex;
+	align-items: baseline;
+	justify-content: center;
+	gap: 0.75rem;
 }
