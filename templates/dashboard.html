@@ -4,14 +4,14 @@
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>Dashboard | Smart Fitness Planner</title>
-		<link rel="stylesheet" href="/static/style.css">
-		<link rel="stylesheet" href="/static/dashboard.css">
+		<link rel="stylesheet" href="/static/css/style.css">
+		<link rel="stylesheet" href="/static/css/dashboard.css">
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 	</head>
 
 	<body>
 
-		<div class="dashboard-container">
+		<div class="width-container">
 
 			<!-- Header -->
 			<div class="profile-section">
@@ -48,7 +48,7 @@
 						<div class="activity-item"><span>Push-ups</span><span>15</span></div>
 						<div class="activity-item"><span>Squats</span><span>20</span></div>
 						<div class="activity-item"><span>Lunges</span><span>15</span></div>
-						<a href="#" class="link small-link">View full routine →</a> <!-- This will lead to the calendar and the full workout -->
+						<a href="/templates/calendar.html" class="link small-link">View full routine →</a> <!-- This will lead to the calendar and the full workout -->
 					</div>
 				</div>
 			</div>
@@ -56,7 +56,7 @@
 			<!-- Statistics Summary -->
 			<div class="section-two">
 				<p class="section-title">Overall Status</p>
-				<a href="#" class="link small-link">See more →</a>
+				<a href="/templates/statistics.html" class="link small-link">See more →</a>
 			</div>
 
 			<!-- Total Calories Burned -->
@@ -118,10 +118,10 @@
 
 			<!-- Nav Menu -->
 			<nav class="bottom-nav">
-				<a href="#"><i class="fas fa-home"></i></a>
-				<a href="#"><i class="fas fa-calendar-alt"></i></a>
-				<a href="#"><i class="fas fa-chart-line"></i></a>
-				<a href="#"><i class="fas fa-user"></i></a>
+				<a href="/templates/dashboard.html"><i class="fas fa-home"></i></a>
+				<a href="/templates/calendar.html"><i class="fas fa-calendar-alt"></i></a>
+				<a href="/templates/statistics.html"><i class="fas fa-chart-line"></i></a>
+				<a href="/templates/profile.html"><i class="fas fa-user"></i></a>
 			</nav>
 
 
