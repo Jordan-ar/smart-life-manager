@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Training Plan | Smart Fitness Planner</title>
+		<link rel="stylesheet" href="/static/css/style.css">
+		<link rel="stylesheet" href="/static/css/main-pages.css">
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+		<script src="/static/js/calendar.js" defer></script>
+	</head>
+
+	<body>
+		<div class="width-container">
+
+			<!-- Header -->
+			<div>
+				<h1>My Training Plan</h1>
+				<p id="plan-subtitle">Lose Weight · Week 1</p>
+			</div>
+
+			<!-- Week calendar -->
+			<div class="week-bar" id="week-bar">
+				<div class="day-circle active" data-day="Mon">M</div>
+				<div class="day-circle" data-day="Tue">T</div>
+				<div class="day-circle" data-day="Wed">W</div>
+				<div class="day-circle" data-day="Thu">T</div>
+				<div class="day-circle" data-day="Fri">F</div>
+				<div class="day-circle" data-day="Sat">S</div>
+				<div class="day-circle" data-day="Sun">S</div>
+			</div>
+
+			<!-- Workout of the day -->
+			<div class="card" id="day-card">
+				<p class="card-title"><i class="fas fa-fire"></i> Fat Burn · Today</p>
+				<p class="card-sub">The fat burn workout. Blasts calories and boosts endurance.</p>
+
+				<h4 class="exercise-title">Exercises</h4>
+
+				<p id="completion-message">
+					All workouts completed for today!
+				</p>
+			</div>
+
+		</div>
+
+		<!--Exercise explanation-->
+		<div id="exercise-modal" class="modal">
+			<div class="modal-content">
+				<span class="close-modal">&times;</span>
+				<h3 id="modal-exercise-name" class="modal-exercise-title">Exercise Name</h3>
+				<img id="modal-exercise-image" src="#" alt="Exercise Image">
+				<div class="modal-info">
+					<p><i class="fas fa-bullseye"></i> <span id="modal-exercise-target">Target: Full Body</span></p>
+					<p><i class="fas fa-dumbbell"></i> <span id="modal-exercise-equipment">Equipment: None</span></p>
+					<p><i class="fas fa-redo-alt"></i> <span id="modal-exercise-reps">Reps: 10</span></p>
+				</div>
+				<p id="modal-exercise-description" class="modal-description">Exercise description will go here.</p>
+			</div>
+		</div>
+
+		<!-- Nav Menu -->
+		<nav class="bottom-nav">
+			<a href="/templates/dashboard.html"><i class="fas fa-home"></i></a>
+			<a href="/templates/calendar.html"><i class="fas fa-calendar-alt"></i></a>
+			<a href="/templates/statistics.html"><i class="fas fa-chart-line"></i></a>
+			<a href="/templates/profile.html"><i class="fas fa-user"></i></a>
+		</nav>
+
+	</body>
+</html>
