@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Profile | Smart Fitness Planner</title>
+		<link rel="stylesheet" href="/static/css/style.css">
+		<link rel="stylesheet" href="/static/css/auth.css">
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js" defer></script>
+		<script src="/static/js/script.js" defer></script>
+	</head>
+
+	<body>
+		<div class="width-container">
+
+			<div class="card profile-section">
+				<h1>My Profile</h1>
+				<img id="profile-pic" src="/static/assets/profile-picture.jpg" alt="Profile Photo">
+				<button onclick="toggleUploadMenu()" class="btn primary full-btn">Change Picture</button>
+			</div>
+
+			<div class="card account">
+				<label for="name" class="sr-only">Name</label>
+				<input type="text" class="form-input" id="user-name" value="John Doe" readonly>
+				<label for="email" class="sr-only">Email</label>
+				<input type="text" class="form-input" value="johndoe@email.com" readonly>
+				<button class="btn full-btn secondary">Log Out</button>
+			</div>
+
+			<div class="card">
+				<label class="card-title">My Fitness Plan</label>
+				<p id="plan-summary">
+					Goal: Lose Weight<br>
+					Activity: Occasionally active<br>
+					Favorites: Yoga, Walking<br>
+					Days per week: 3–4<br>
+					Time per day: 30–40 min
+				</p>
+				<button class="btn full-btn primary">Edit Preferences</button>
+			</div>
+
+			<div class="card">
+				<label class="card-title">Want to leave feedback?</label>
+				<button class="btn full-btn secondary" onclick="openFeedbackModal()">Send Feedback</button>
+			</div>
+		</div>
+
+		<div class="modal-overlay" id="uploadOverlay" onclick="closeUploadMenu()"></div>
+		<div class="upload-menu" id="uploadMenu">
+			<h2 class="card-title">Upload Photo</h2>
+			<button class="btn full-btn primary" onclick="openCamera()">Take Photo</button>
+			<button class="btn full-btn secondary" onclick="document.getElementById('fileInput').click()">Choose from Gallery</button>
+			<input type="file" id="fileInput" class="hidden" accept="image/*">
+			<button class="btn full-btn secondary" onclick="closeUploadMenu()">Cancel</button>
+		</div>
+
+		<div class="modal" id="feedback-modal">
+			<div class="feedback-modal-content">
+				<span class="close-modal" onclick="closeFeedbackModal()">&times;</span>
+				<h2 class="card-title">We’d love your feedback</h2>
+				<form onsubmit="event.preventDefault(); alert('Thank you for your feedback!'); closeFeedbackModal();">
+					<input type="text" class="form-input" placeholder="Your name">
+					<input type="email" class="form-input" placeholder="Your email">
+					<textarea class="form-input" rows="4" placeholder="Share your thoughts..."></textarea>
+					<button class="btn full-btn primary" type="submit">Send</button>
+				</form>
+			</div>
+		</div>
+
+		<!-- Nav Menu -->
+		<nav class="bottom-nav">
+			<a href="/templates/dashboard.html"><i class="fas fa-home"></i></a>
+			<a href="/templates/calendar.html"><i class="fas fa-calendar-alt"></i></a>
+			<a href="/templates/statistics.html"><i class="fas fa-chart-line"></i></a>
+			<a href="/templates/profile.html"><i class="fas fa-user"></i></a>
+		</nav>
+	</body>
+</html>
