@@ -263,6 +263,6 @@ document.addEventListener("DOMContentLoaded", () => {
 	handleCheckboxStep({ stepId: "question-step-12", nextBtnId: "next-btn-12", resultKey: "Available Resources", nextStepIndex: 13, backBtnId: "back-btn-12", backStepIndex: 11 });
 
 	document.getElementById("next-btn-12").addEventListener("click", () => {
-		window.location.href = "/templates/results.html";
+		window.location.href = "/results";
 	});
 });

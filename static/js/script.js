@@ -47,8 +47,72 @@ function closeUploadMenu() {
 }
 
 function openCamera() {
-	alert('Logic for camera back end');
-	closeUploadMenu();
+	const video = document.createElement('video');
+	const canvas = document.createElement('canvas');
+	const context = canvas.getContext('2d');
+
+	const modal = document.createElement('div');
+	modal.classList.add('camera-modal');
+
+	const captureBtn = document.createElement('button');
+	captureBtn.textContent = 'Capture';
+	captureBtn.className = 'btn full-btn primary';
+
+	const closeBtn = document.createElement('button');
+	closeBtn.textContent = 'Cancel';
+	closeBtn.className = 'btn full-btn secondary';
+
+	modal.appendChild(video);
+	modal.appendChild(captureBtn);
+	modal.appendChild(closeBtn);
+	document.body.appendChild(modal);
+
+	// Start camera
+	navigator.mediaDevices.getUserMedia({ video: true })
+		.then((stream) => {
+			video.srcObject = stream;
+			video.play();
+
+			captureBtn.onclick = () => {
+				canvas.width = video.videoWidth;
+				canvas.height = video.videoHeight;
+				context.drawImage(video, 0, 0, canvas.width, canvas.height);
+				video.srcObject.getTracks().forEach(track => track.stop());
+
+				const imageData = canvas.toDataURL('image/png');
+				uploadImage(imageData);
+				document.body.removeChild(modal);
+			};
+
+			closeBtn.onclick = () => {
+				video.srcObject.getTracks().forEach(track => track.stop());
+				document.body.removeChild(modal);
+			};
+		})
+		.catch(err => {
+			alert("Camera access was denied or not available.");
+			console.error(err);
+		});
+}
+
+function uploadImage(imageData) {
+	fetch('/upload-profile-photo', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ image: imageData })
+	})
+	.then(res => res.json())
+	.then(data => {
+		if (data.success) {
+			document.getElementById('profile-pic').src = data.path + '?t=' + new Date().getTime();
+		} else {
+			alert('Failed to upload image.');
+		}
+	})
+	.catch(err => {
+		console.error("Upload error:", err);
+		alert('Error uploading photo.');
+	});
 }
 
 // functions for feedback modal

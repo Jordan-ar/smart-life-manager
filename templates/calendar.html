@@ -61,10 +61,10 @@
 
 		<!-- Nav Menu -->
 		<nav class="bottom-nav">
-			<a href="/templates/dashboard.html"><i class="fas fa-home"></i></a>
-			<a href="/templates/calendar.html"><i class="fas fa-calendar-alt"></i></a>
-			<a href="/templates/statistics.html"><i class="fas fa-chart-line"></i></a>
-			<a href="/templates/profile.html"><i class="fas fa-user"></i></a>
+			<a href="{{ url_for('home') }}"><i class="fas fa-home"></i></a>
+			<a href="{{ url_for('calendar') }}"><i class="fas fa-calendar-alt"></i></a>
+			<a href="{{ url_for('statistics') }}"><i class="fas fa-chart-line"></i></a>
+			<a href="{{ url_for('profile') }}"><i class="fas fa-user"></i></a>
 		</nav>
 
 	</body>
