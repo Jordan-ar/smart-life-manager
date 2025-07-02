@@ -53,7 +53,7 @@
 					<div class="form-options">
 						<label class="text-checkbox">
 							<input type="checkbox"> I accept the
-							<a href="#" class="link">terms and conditions</a>
+							<a href="#" class="link" onclick="openTermsModal()">terms and conditions</a>
 						</label>
 					</div>
 
@@ -81,6 +81,16 @@
 						<a href="/templates/signin.html" class="link">Sign In</a>
 					</p>
 				</form>
+			</div>
+		</div>
+		<div class="modal-overlay" id="modalOverlay" onclick="closeTermsModal()"></div>
+		<div class="modal-terms" id="termsModal">
+			<div class="feedback-modal-content">
+				<span class="close-modal" onclick="closeTermsModal()">&times;</span>
+				<h2 class="card-title">Terms & Conditions</h2>
+				<p>
+					I acknowledge that I take full responsibility for using this application, which is designed for users who do not have any medical conditions. The developers take no responsibility for any medical incidents or emergencies that could occur when using this app.
+				</p>
 			</div>
 		</div>
 	</body>
