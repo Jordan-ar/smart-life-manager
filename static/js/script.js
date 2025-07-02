@@ -34,3 +34,40 @@ document.addEventListener("DOMContentLoaded", () => {
 		window.location.href = "onboarding.html";
 	});
 });
+
+// Funcions por profile picture
+function toggleUploadMenu() {
+	document.getElementById('uploadMenu').style.display = 'block';
+	document.getElementById('uploadOverlay').style.display = 'block';
+}
+
+function closeUploadMenu() {
+	document.getElementById('uploadMenu').style.display = 'none';
+	document.getElementById('uploadOverlay').style.display = 'none';
+}
+
+function openCamera() {
+	alert('Logic for camera back end');
+	closeUploadMenu();
+}
+
+// functions for feedback modal
+function openFeedbackModal() {
+	document.getElementById('feedback-modal').style.display = 'flex';
+	document.getElementById('uploadOverlay').style.display = 'block';
+}
+
+// Functions for terms and conditions modal
+function closeFeedbackModal() {
+	document.getElementById('feedback-modal').style.display = 'none';
+	document.getElementById('uploadOverlay').style.display = 'none';
+}
+
+function openTermsModal() {
+	document.getElementById("modalOverlay").style.display = "block";
+	document.getElementById("termsModal").style.display = "flex";
+}
+function closeTermsModal() {
+	document.getElementById("modalOverlay").style.display = "none";
+	document.getElementById("termsModal").style.display = "none";
+}
