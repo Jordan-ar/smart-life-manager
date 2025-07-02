@@ -4,10 +4,11 @@
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>Sign In | Smart Fitness Planner</title>
-		<link rel="stylesheet" href="/static/style.css">
+		<link rel="stylesheet" href="/static/css/style.css">
+		<link rel="stylesheet" href="/static/css/auth.css">
 		<!-- Font Awesome for icons -->
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-		<script src="/static/script.js" defer></script>
+		<script src="/static/js/script.js" defer></script>
 	</head>
 
 	<body>
@@ -17,28 +18,26 @@
 				<h1>Sign in to your account</h1>
 				<p>Let's continue your fitness journey</p>
 				<!-- Sign In Form -->
-				<form>
-					<!-- Email and Password Fields -->
-					<div>
-						<label for="email" class="sr-only">Email</label>
-						<input type="email" id="email" class="form-input" placeholder="Email" required>
-					</div>
+				<form method="POST" action="{{ url_for('signin') }}">
+  					<div>
+    					<label for="email" class="sr-only">Email</label>
+    					<input type="email" id="email" name="email" class="form-input" placeholder="Email" required>
+  					</div>
 
-					<div class="password-group">
-						<label for="password" class="sr-only">Password</label>
-						<input type="password" id="password" class="form-input" placeholder="Password" required>
-						<!-- Toggle Password Visibility -->
-						<button type="button" class="toggle-password" aria-label="Toggle password visibility">
-							<i class="fa-solid fa-eye"></i>
-						</button>
-					</div>
+  					<div class="password-group">
+    					<label for="password" class="sr-only">Password</label>
+    					<input type="password" id="password" name="password" class="form-input" placeholder="Password" required>
+    					<button type="button" class="toggle-password" aria-label="Toggle password visibility">
+      						<i class="fa-solid fa-eye"></i>
+    					</button>
+ 					</div>
 
 					<!-- Remember Me and Forgot Password Links -->
 					<div class="form-options">
 						<label class="text-checkbox">
 							<input type="checkbox"> Remember me
 						</label>
-						<a href="#" class="link">Forgot password?</a>
+						<a href="{{ url_for('reset_password') }}" class="link">Forgot password?</a>
 					</div>
 
 					<!-- Sign In Button and Social Sign In Options -->
@@ -47,17 +46,14 @@
 						<span>or</span>
 					</div>
 					<div class="buttons">
-						<a href="#" class="btn secondary">
+						<a href="{{ url_for('google.login') }}" class="btn secondary">
 							<i class="fab fa-google icon"></i> Sign in with Google
-						</a>
-						<a href="#" class="btn secondary">
-							<i class="fab fa-microsoft icon"></i> Sign in with Microsoft
 						</a>
 					</div>
 					<!-- Bottom Text for Sign Up Link -->
 					<p class="bottom-text">
 						Don't have an account?
-						<a href="/templates/signup.html" class="link">Sign Up</a>
+						<a href="{{ url_for('signup') }}" class="link">Sign Up</a>
 					</p>
 				</form>
 			</div>

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Statistics | Smart Fitness Planner</title>
+		<link rel="stylesheet" href="/static/css/style.css">
+		<link rel="stylesheet" href="/static/css/main-pages.css">
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+		<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+		<script src="/static/js/statistics.js" defer></script>
+	</head>
+
+	<body>
+		<div class="stats-container">
+			<h1><i class="fas fa-chart-line"></i> Your Fitness Stats</h1>
+
+			<!-- Monthly Overview -->
+			<div class="card-grid">
+				<div class="stat-card"><i class="fas fa-check-circle"></i> <strong>12</strong><br>Workouts</div>
+				<div class="stat-card"><i class="fas fa-chart-area"></i> <strong>Week 3</strong><br>Most Active</div>
+				<div class="stat-card"><i class="fas fa-calendar-day"></i> <strong>5 days</strong><br>Longest Streak</div>
+				<div class="stat-card"><i class="fas fa-star"></i> <strong>75%</strong><br>Routine Adherence</div>
+			</div>
+
+			<!-- Activity Calendar -->
+			<div class="calendar-container">
+				<h2><i class="fas fa-calendar-alt"></i> Activity Calendar</h2>
+				<div id="calendar"></div>
+			</div>
+
+			<!-- Trends -->
+			<div>
+				<h2><i class="fas fa-chart-bar"></i> Trends</h2>
+				<div class="toggle-buttons">
+					<button class="toggle-btn active">Day</button>
+					<button class="toggle-btn">Week</button>
+					<button class="toggle-btn">Month</button>
+				</div>
+				<canvas id="trendsChart" height="200"></canvas>
+			</div>
+
+			<!-- Insights -->
+			<div class="insights">
+				<h2><i class="fas fa-lightbulb"></i> Insights</h2>
+				<ul>
+					<li><i class="fas fa-bolt"></i> Most active day: <strong>Wednesday</strong></li>
+					<li><i class="fas fa-dumbbell"></i> Favorite: <strong>Strength</strong></li>
+					<li><i class="fas fa-sun"></i> Preferred Time: <strong>Morning</strong></li>
+					<li><i class="fas fa-fire"></i> Consistency: <strong>+15% this month</strong></li>
+				</ul>
+			</div>
+
+			<!-- Goal Progress -->
+			<div class="goal-container">
+				<h2><i class="fas fa-bullseye"></i> Goal Progress</h2>
+				<div class="donut-wrapper">
+					<canvas id="goalChart" width="200" height="200"></canvas>
+					<div class="donut-center">8kg<br>lost</div>
+				</div>
+				<p class="goal-feedback">You're ahead of your plan!</p>
+			</div>
+
+			<!-- Extras -->
+			<div class="extras">
+				<h2><i class="fas fa-magic"></i> Extra Stats</h2>
+				<ul>
+					<li><i class="fas fa-stopwatch"></i> Avg. Duration: <strong>43 min</strong></li>
+					<li><i class="fas fa-hourglass-end"></i> Longest Session: <strong>70 min</strong></li>
+					<li><i class="fas fa-list-ul"></i> Exercises Total: <strong>144</strong></li>
+				</ul>
+			</div>
+
+		</div>
+
+		<!-- Nav Menu -->
+		<nav class="bottom-nav">
+			<a href="{{ url_for('home') }}"><i class="fas fa-home"></i></a>
+			<a href="{{ url_for('calendar') }}"><i class="fas fa-calendar-alt"></i></a>
+			<a href="{{ url_for('statistics') }}"><i class="fas fa-chart-line"></i></a>
+			<a href="{{ url_for('profile') }}"><i class="fas fa-user"></i></a>
+		</nav>
+
+	</body>
+</html>
