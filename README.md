@@ -5,3 +5,4 @@ workokuts and exercises based on users input factors, such as weight and fitness
 Jordan (jm267037@my.stchas.edu) - Project Manager
 Tomas (tc285904@my.stchas.edu) - Developer
 Manuela (mp272593@my.stchas.edu) - Developer
+Hello, this is Jordan
