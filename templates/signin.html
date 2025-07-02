@@ -18,21 +18,19 @@
 				<h1>Sign in to your account</h1>
 				<p>Let's continue your fitness journey</p>
 				<!-- Sign In Form -->
-				<form>
-					<!-- Email and Password Fields -->
-					<div>
-						<label for="email" class="sr-only">Email</label>
-						<input type="email" id="email" class="form-input" placeholder="Email" required>
-					</div>
+				<form method="POST" action="{{ url_for('signin') }}">
+  					<div>
+    					<label for="email" class="sr-only">Email</label>
+    					<input type="email" id="email" name="email" class="form-input" placeholder="Email" required>
+  					</div>
 
-					<div class="password-group">
-						<label for="password" class="sr-only">Password</label>
-						<input type="password" id="password" class="form-input" placeholder="Password" required>
-						<!-- Toggle Password Visibility -->
-						<button type="button" class="toggle-password" aria-label="Toggle password visibility">
-							<i class="fa-solid fa-eye"></i>
-						</button>
-					</div>
+  					<div class="password-group">
+    					<label for="password" class="sr-only">Password</label>
+    					<input type="password" id="password" name="password" class="form-input" placeholder="Password" required>
+    					<button type="button" class="toggle-password" aria-label="Toggle password visibility">
+      						<i class="fa-solid fa-eye"></i>
+    					</button>
+ 					</div>
 
 					<!-- Remember Me and Forgot Password Links -->
 					<div class="form-options">
