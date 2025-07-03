@@ -263,6 +263,25 @@ document.addEventListener("DOMContentLoaded", () => {
 	handleCheckboxStep({ stepId: "question-step-12", nextBtnId: "next-btn-12", resultKey: "Available Resources", nextStepIndex: 13, backBtnId: "back-btn-12", backStepIndex: 11 });
 
 	document.getElementById("next-btn-12").addEventListener("click", () => {
-		window.location.href = "/results";
+		fetch("/save_onboarding", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(answers),
+		})
+			.then(res => res.json())
+			.then(data => {
+				if (data.success) {
+					window.location.href = "/results";
+				} else {
+					console.error("Error saving data:", data.error);
+					alert("Oops! Couldn't save your data.");
+				}
+			})
+			.catch(err => {
+				console.error("Network error:", err);
+				alert("Something went wrong. Try again!");
+			});
 	});
 });
