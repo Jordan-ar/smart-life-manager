@@ -48,7 +48,7 @@
 						<div class="activity-item"><span>Push-ups</span><span>15</span></div>
 						<div class="activity-item"><span>Squats</span><span>20</span></div>
 						<div class="activity-item"><span>Lunges</span><span>15</span></div>
-						<a href="/templates/calendar.html" class="link small-link">View full routine →</a> <!-- This will lead to the calendar and the full workout -->
+						<a href="{{ url_for('calendar') }}" class="link small-link">View full routine →</a>
 					</div>
 				</div>
 			</div>
@@ -56,7 +56,7 @@
 			<!-- Statistics Summary -->
 			<div class="section-two">
 				<p class="section-title">Overall Status</p>
-				<a href="/templates/statistics.html" class="link small-link">See more →</a>
+				<a href="{{ url_for('statistics') }}" class="link small-link">See more →</a>
 			</div>
 
 			<!-- Total Calories Burned -->

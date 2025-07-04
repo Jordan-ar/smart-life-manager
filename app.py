@@ -1,5 +1,6 @@
+import os
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-from werkzeug.security import generate_password_hash, check_password_hash
+from passlib.hash import bcrypt
 from flask_dance.contrib.google import make_google_blueprint, google
 from dotenv import load_dotenv
 import sqlite3
@@ -16,12 +17,21 @@ app = Flask(__name__)
 # Google OAuth setup
 app.secret_key = os.getenv("SECRET_KEY")  # Load from .env
 
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+
 # Google OAuth setup with env vars
 google_bp = make_google_blueprint(
     client_id=os.getenv("GOOGLE_CLIENT_ID"),
     client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
-    redirect_to="dashboard"
+    scope=[
+        "openid",
+        "https://www.googleapis.com/auth/userinfo.email",
+        "https://www.googleapis.com/auth/userinfo.profile"
+    ],
+    redirect_to="dashboard",
+    reprompt_consent=True 
 )
+
 app.register_blueprint(google_bp, url_prefix="/login")
 
 DB = 'instance/smartfit.db'
@@ -56,9 +66,15 @@ init_db()
 
 # ROUTES
 
+@app.route("/start-google-login")
+def start_google_login():
+    return redirect(url_for("google.login") + "?prompt=select_account")
+
 @app.route('/')
 def home():
-    return render_template('dashboard.html') if 'user_id' in session else redirect(url_for('signin'))
+    if 'user_id' in session:
+        return redirect(url_for('dashboard'))
+    return render_template('index.html')
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -72,7 +88,7 @@ def signup():
             flash('Passwords do not match.')
             return redirect(url_for('signup'))
 
-        hashed_password = generate_password_hash(password)
+        hashed_password = bcrypt.hash(password)
 
         conn = sqlite3.connect(DB)
         c = conn.cursor()
@@ -109,7 +125,7 @@ def signin():
         c.execute("SELECT id, password FROM users WHERE email = ?", (email,))
         user = c.fetchone()
 
-        if user and check_password_hash(user[1], password):
+        if user and bcrypt.verify(password, user[1]):
             session['user_id'] = user[0]
 
             c.execute("SELECT id FROM plans WHERE user_id = ?", (user[0],))
@@ -268,6 +284,40 @@ def upload_profile_photo():
 @app.route('/results')
 def results():
     return render_template('results.html')
+
+@app.route('/save_onboarding', methods=['POST'])
+def save_onboarding():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Not logged in'}), 401
+
+    data = request.get_json()
+    if not data:
+        return jsonify({'success': False, 'error': 'No data received'}), 400
+
+    import json
+    goal = data.get('Motivation')
+    experience = data.get('Activity Level')
+    days = data.get('Training Days')
+    user_id = session['user_id']
+
+    if isinstance(days, str):
+        try:
+            days = int(days)
+        except:
+            days = 3
+
+    routine = "This is a placeholder plan." 
+
+    conn = sqlite3.connect(DB)
+    c = conn.cursor()
+    c.execute('''
+        INSERT INTO plans (user_id, goal, experience, days, routine, answers_json)
+        VALUES (?, ?, ?, ?, ?, ?)
+    ''', (user_id, goal, experience, days, routine, json.dumps(data)))
+    conn.commit()
+    conn.close()
+
+    return jsonify({'success': True})
 
 # LOGIC ENGINE
 
