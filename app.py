@@ -284,7 +284,16 @@ def generate_routine(goal, experience, days):
         plan.append(f"{day_plan} ({experience})")
 
     return "\n".join(plan)
-
+@app.route('/admin/user-count')
+def user_count():
+    conn = sqlite3.connect(DB)
+    c = conn.cursor()
+    c.execute("SELECT COUNT(*)
+FROM users")
+ count = c.fetchone()[0]
+ conn.close()
+ return
+render_template('user_count.html', count=count)
 if __name__ == '__main__':
     app.run(debug=True)
 
