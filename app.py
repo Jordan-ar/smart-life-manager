@@ -8,6 +8,7 @@ import os
 import base64
 from flask import jsonify
 from datetime import datetime
+import glob
 
 # Load environment variables from .env
 load_dotenv()
@@ -237,8 +238,18 @@ def profile():
     c.execute("SELECT name, email FROM users WHERE id = ?", (session['user_id'],))
     user = c.fetchone()
     conn.close()
+    
+    user_id = session["user_id"]
+    folder_path = os.path.join("static", "uploads")
+    pattern = os.path.join(folder_path, f"user_{user_id}_*.png")
+    files = glob.glob(pattern)
 
-    profile_pic = f"/static/uploads/user_{session['user_id']}.png"  # optional logic
+
+    profile_pic = "/static/assets/profile-picture.jpg"  # default
+
+    if files:
+        latest_file = max(files, key=os.path.getctime)
+        profile_pic = "/" + latest_file.replace("\\", "/")  # Flask needs forward slashes
 
     if user:
         return render_template('profile.html', name=user[0], email=user[1], profile_pic=profile_pic)
@@ -338,12 +349,11 @@ def generate_routine(goal, experience, days):
 def user_count():
     conn = sqlite3.connect(DB)
     c = conn.cursor()
-    c.execute("SELECT COUNT(*)
-FROM users")
- count = c.fetchone()[0]
- conn.close()
- return
-render_template('user_count.html', count=count)
+    c.execute("SELECT COUNT(*) FROM users")
+    count = c.fetchone()[0]
+    conn.close()
+    return render_template('user_count.html', count=count)
+
 if __name__ == '__main__':
     app.run(debug=True)
 
