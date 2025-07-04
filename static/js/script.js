@@ -34,87 +34,6 @@ document.addEventListener("DOMContentLoaded", () => {
 		window.location.href = "onboarding.html";
 	});
 });
-
-// Funcions por profile picture
-function toggleUploadMenu() {
-	document.getElementById('uploadMenu').style.display = 'block';
-	document.getElementById('uploadOverlay').style.display = 'block';
-}
-
-function closeUploadMenu() {
-	document.getElementById('uploadMenu').style.display = 'none';
-	document.getElementById('uploadOverlay').style.display = 'none';
-}
-
-function openCamera() {
-	const video = document.createElement('video');
-	const canvas = document.createElement('canvas');
-	const context = canvas.getContext('2d');
-
-	const modal = document.createElement('div');
-	modal.classList.add('camera-modal');
-
-	const captureBtn = document.createElement('button');
-	captureBtn.textContent = 'Capture';
-	captureBtn.className = 'btn full-btn primary';
-
-	const closeBtn = document.createElement('button');
-	closeBtn.textContent = 'Cancel';
-	closeBtn.className = 'btn full-btn secondary';
-
-	modal.appendChild(video);
-	modal.appendChild(captureBtn);
-	modal.appendChild(closeBtn);
-	document.body.appendChild(modal);
-
-	// Start camera
-	navigator.mediaDevices.getUserMedia({ video: true })
-		.then((stream) => {
-			video.srcObject = stream;
-			video.play();
-
-			captureBtn.onclick = () => {
-				canvas.width = video.videoWidth;
-				canvas.height = video.videoHeight;
-				context.drawImage(video, 0, 0, canvas.width, canvas.height);
-				video.srcObject.getTracks().forEach(track => track.stop());
-
-				const imageData = canvas.toDataURL('image/png');
-				uploadImage(imageData);
-				document.body.removeChild(modal);
-			};
-
-			closeBtn.onclick = () => {
-				video.srcObject.getTracks().forEach(track => track.stop());
-				document.body.removeChild(modal);
-			};
-		})
-		.catch(err => {
-			alert("Camera access was denied or not available.");
-			console.error(err);
-		});
-}
-
-function uploadImage(imageData) {
-	fetch('/upload-profile-photo', {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({ image: imageData })
-	})
-	.then(res => res.json())
-	.then(data => {
-		if (data.success) {
-			document.getElementById('profile-pic').src = data.path + '?t=' + new Date().getTime();
-		} else {
-			alert('Failed to upload image.');
-		}
-	})
-	.catch(err => {
-		console.error("Upload error:", err);
-		alert('Error uploading photo.');
-	});
-}
-
 // functions for feedback modal
 function openFeedbackModal() {
 	document.getElementById('feedback-modal').style.display = 'flex';
@@ -134,4 +53,92 @@ function openTermsModal() {
 function closeTermsModal() {
 	document.getElementById("modalOverlay").style.display = "none";
 	document.getElementById("termsModal").style.display = "none";
+}
+
+// functions for profile picture
+function openCameraModal() {
+	const modal = document.getElementById("cameraModal");
+	modal.classList.remove("hidden");
+
+	const video = document.getElementById("video");
+	navigator.mediaDevices.getUserMedia({ video: true })
+		.then(stream => {
+			video.srcObject = stream;
+		})
+		.catch(err => {
+			alert("Could not access the camera. Please check permissions.");
+			closeCameraModal();
+		});
+}
+function closeCameraModal() {
+	const modal = document.getElementById("cameraModal");
+	modal.classList.add("hidden");
+
+	const video = document.getElementById("video");
+	const stream = video.srcObject;
+	if (stream) {
+		const tracks = stream.getTracks();
+		tracks.forEach(track => track.stop());
+	}
+	video.srcObject = null;
+}
+function takePhoto() {
+	const video = document.getElementById("video");
+	const canvas = document.getElementById("canvas");
+	const context = canvas.getContext("2d");
+
+	canvas.width = video.videoWidth;
+	canvas.height = video.videoHeight;
+	context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+	const dataURL = canvas.toDataURL("image/png");
+	document.getElementById("profile-pic").src = dataURL;
+	uploadImageToServer(dataURL);
+
+	togglePhotoOptions();
+	closeCameraModal();
+}
+
+document.getElementById('profileImageInput').addEventListener('change', function () {
+	const file = this.files[0];
+	if (file) {
+		const reader = new FileReader();
+		reader.onload = function (e) {
+			const imageData = e.target.result;
+			document.getElementById("profile-pic").src = imageData;
+			uploadImageToServer(imageData);
+		};
+		reader.readAsDataURL(file);
+	}
+});
+
+function togglePhotoOptions() {
+	const options = document.getElementById('photo-options');
+	options.classList.toggle('hidden');
+}
+function triggerFileUpload() {
+	document.getElementById('profileImageInput').click();
+	togglePhotoOptions(); // cerrar menú después
+}
+
+function uploadImageToServer(base64Image) {
+	fetch("/upload-profile-photo", {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json"
+		},
+		body: JSON.stringify({ image: base64Image })
+	})
+		.then(response => response.json())
+		.then(data => {
+			if (data.success) {
+				document.getElementById("profile-pic").src = data.path + "?t=" + new Date().getTime();
+			} else {
+				alert("Error uploading image: " + data.error);
+			}
+		})
+		.catch(err => {
+			console.error("Upload failed:", err);
+			alert("Could not upload image.");
+		});
 }
