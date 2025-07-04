@@ -79,6 +79,10 @@
 	opacity: 0.95;
 }
 
+.small-btn {
+	margin-top: 1rem;
+}
+
 /* Option Buttons */
 .option-btn {
 	display: flex;
@@ -344,7 +348,6 @@ input[type="checkbox"] {
 	display: none;
 	justify-content: center;
 	align-items: center;
-	background: none;
 }
 
 #feedback-modal .feedback-modal-content {
@@ -409,4 +412,41 @@ input[type="checkbox"] {
 	flex-direction: column;
 	justify-content: space-between;
 	gap: 0.5rem;
+}
+
+.camera-modal-content {
+	position: relative;
+	background: var(--white-transparent);
+	padding: 1rem;
+	border-radius: 16px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	max-width: 90vw;
+}
+
+.camera-modal-content video {
+	width: 100%;
+	max-width: 360px;
+	border-radius: 16px;
+}
+
+.camera-buttons {
+	margin-top: 1rem;
+	display: flex;
+	gap: 1rem;
+	justify-content: center;
+}
+
+.photo-options {
+	margin-top: 0.5rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.photo-options button {
+	font-size: 0.85rem;
+	border-radius: 10px;
+	text-align: left;
 }
