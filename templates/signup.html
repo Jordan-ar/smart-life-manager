@@ -17,7 +17,7 @@
 			<div class="welcome-card">
 				<h1>Create your account</h1>
 				<p>Let's begin your transformation</p>
-				
+
 				<!-- Sign Up Form -->
 				<form method="POST" action="{{ url_for('signup') }}">
 					<!-- Name and Email Fields -->
@@ -51,7 +51,7 @@
 					<!-- Form Options -->
 					<div class="form-options">
 						<label class="text-checkbox">
-							<input type="checkbox" required> I accept the
+							<input type="checkbox" id="termsCheckbox" required> I accept the
 							<a href="#" class="link" onclick="openTermsModal()">terms and conditions</a>
 						</label>
 					</div>
@@ -66,9 +66,10 @@
 
 					<!-- Social Sign Up Options -->
 					<div class="buttons">
-						<a href="#" class="btn secondary">
+						<a id="googleSignUpBtn" class="btn secondary disabled" data-href="{{ url_for('google.login') }}?prompt=select_account">
 							<i class="fab fa-google icon"></i> Continue with Google
 						</a>
+						<p class="hint">You must accept the terms and conditions to continue with Google</p>
 					</div>
 
 					<!-- Bottom Text for Sign In Link -->

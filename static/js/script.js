@@ -30,9 +30,23 @@ document.addEventListener("DOMContentLoaded", () => {
 	}
 
 	// Sign Up: Handle button click
-	document.getElementById("signup-btn").addEventListener("click", () => {
-		window.location.href = "onboarding.html";
-	});
+	const checkbox = document.getElementById('termsCheckbox');
+	const googleBtn = document.getElementById('googleSignUpBtn');
+
+	if (checkbox && googleBtn) {
+		checkbox.addEventListener('change', function () {
+			if (this.checked) {
+				googleBtn.classList.remove('disabled');
+				const href = googleBtn.getAttribute('data-href');
+				if (href) {
+					googleBtn.setAttribute('href', href);
+				}
+			} else {
+				googleBtn.classList.add('disabled');
+				googleBtn.removeAttribute('href');
+			}
+		});
+	}
 });
 // functions for feedback modal
 function openFeedbackModal() {
