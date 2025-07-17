@@ -65,6 +65,28 @@ def init_db():
         conn.close()
 init_db()
 
+def ensure_user_session():
+    if google.authorized and 'user_id' not in session:
+        resp = google.get("/oauth2/v1/userinfo")
+        user_info = resp.json()
+        email = user_info["email"]
+        name = user_info.get("name", "Google User")
+
+        conn = sqlite3.connect(DB)
+        c = conn.cursor()
+        c.execute("SELECT id FROM users WHERE email = ?", (email,))
+        user = c.fetchone()
+
+        if user:
+            user_id = user[0]
+        else:
+            c.execute("INSERT INTO users (name, email, password) VALUES (?, ?, ?)", (name, email, ""))
+            conn.commit()
+            user_id = c.lastrowid
+
+        conn.close()
+        session['user_id'] = user_id
+
 # ROUTES
 
 @app.route("/start-google-login")
@@ -184,6 +206,7 @@ def onboarding():
 
 @app.route('/dashboard')
 def dashboard():
+    ensure_user_session()
     if 'user_id' in session:
         return render_template('dashboard.html')
 
@@ -222,10 +245,12 @@ def reset_password():
 
 @app.route('/calendar')
 def calendar():
+    ensure_user_session()
     return render_template('calendar.html')
 
 @app.route('/profile')
 def profile():
+    ensure_user_session()
     if 'user_id' not in session:
         return redirect(url_for('signin'))
 
