@@ -224,10 +224,6 @@ def reset_password():
 def calendar():
     return render_template('calendar.html')
 
-@app.route('/statistics')
-def statistics():
-    return render_template('statistics.html')
-
 @app.route('/profile')
 def profile():
     if 'user_id' not in session:
