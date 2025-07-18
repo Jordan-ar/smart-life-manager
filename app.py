@@ -3,11 +3,11 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from passlib.hash import bcrypt
 from flask_dance.contrib.google import make_google_blueprint, google
 from dotenv import load_dotenv
-import sqlite3
-import os
+import sqlite3 
 import base64
 from flask import jsonify
 from datetime import datetime
+from ai_utils import generate_routine
 import glob
 
 # Load environment variables from .env
@@ -64,6 +64,15 @@ def init_db():
         conn.commit()
         conn.close()
 init_db()
+
+def parse_training_days(days_str):
+    mapping = {
+        "1-2": 2,
+        "3-4": 4,
+        "5-6": 6,
+        "7": 7
+    }
+    return mapping.get(days_str, 3)  # default to 3 if not matched
 
 def ensure_user_session():
     if google.authorized and 'user_id' not in session:
@@ -187,19 +196,42 @@ def onboarding():
         goal = request.form['goal']
         experience = request.form['experience']
         days = int(request.form['days'])
+        workout_time = request.form.get('workout_time', '60')  # Replace with real field names if needed
+        activity_level = request.form.get('activity_level', 'Moderate')
+        current_weight = request.form.get('current_weight', '80')
+        goal_weight = request.form.get('goal_weight', '70')
 
-        routine = generate_routine(goal, experience, days)
+        user_data = {
+            "goal": goal,
+            "experience": experience,
+            "days": days,
+            "workout_time": workout_time,
+            "activity_level": activity_level,
+            "current_weight": current_weight,
+            "goal_weight": goal_weight
+        }
+
+        routine = generate_routine(user_data)  # Uses AI
+
+        # Optional but recommended: Save to session for use in other routes
+        session['onboarding_answers'] = user_data
+        session['routine'] = routine
+
+        # Optional: Convert to JSON string if storing in DB
+        import json
+        routine_json = json.dumps(routine)
 
         conn = sqlite3.connect(DB)
         c = conn.cursor()
         c.execute('''
             INSERT INTO plans (user_id, goal, experience, days, routine)
             VALUES (?, ?, ?, ?, ?)
-        ''', (session['user_id'], goal, experience, days, routine))
+        ''', (session['user_id'], goal, experience, days, routine_json))
         conn.commit()
         conn.close()
 
         return render_template('results.html', routine=routine)
+
 
     conn.close()
     return render_template('onboarding.html')
@@ -245,8 +277,21 @@ def reset_password():
 
 @app.route('/calendar')
 def calendar():
-    ensure_user_session()
-    return render_template('calendar.html')
+    if 'user_id' not in session:
+        return redirect(url_for('signin'))
+
+    conn = sqlite3.connect(DB)
+    c = conn.cursor()
+    c.execute("SELECT routine FROM plans WHERE user_id = ?", (session['user_id'],))
+    row = c.fetchone()
+    conn.close()
+
+    import json
+    routine = json.loads(row[0]) if row else []
+
+    return render_template('calendar.html', routine=routine)
+
+
 
 @app.route('/profile')
 def profile():
@@ -313,9 +358,27 @@ def upload_profile_photo():
         print("Upload error:", e)
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/results')
+@app.route("/results")
 def results():
-    return render_template('results.html')
+    if 'onboarding_answers' not in session:
+        return redirect(url_for('onboarding'))
+
+    answers = session['onboarding_answers']
+
+    current_weight = int(answers.get("Current Weight", 0))
+    goal_weight = int(answers.get("Goal Weight", 0))
+    weight_change = goal_weight - current_weight
+    duration = answers.get("Goal Speed", "Balanced pace")
+    time_per_day = answers.get("Daily Time", "30-40")
+    training_days = answers.get("Training Days", "3-4")
+
+    return render_template(
+        "results.html",
+        weight_change=weight_change,
+        time_per_day=time_per_day,
+        training_days=training_days,
+        duration=duration
+    )
 
 @app.route('/save_onboarding', methods=['POST'])
 def save_onboarding():
@@ -326,34 +389,40 @@ def save_onboarding():
     if not data:
         return jsonify({'success': False, 'error': 'No data received'}), 400
 
-    import json
-    goal = data.get('Motivation')
-    experience = data.get('Activity Level')
-    days = data.get('Training Days')
     user_id = session['user_id']
 
-    if isinstance(days, str):
-        try:
-            days = int(days)
-        except:
-            days = 3
+    #  Generate plan using your local AI model (returns Python list of dicts)
+    routine_data = generate_routine(data)
 
-    routine = "This is a placeholder plan." 
+    import json
+    routine_json = json.dumps(routine_data)  # Convert list/dict to JSON string for DB
 
+    #  Save plan and onboarding data to DB
     conn = sqlite3.connect(DB)
     c = conn.cursor()
     c.execute('''
-        INSERT INTO plans (user_id, goal, experience, days, routine, answers_json)
-        VALUES (?, ?, ?, ?, ?, ?)
-    ''', (user_id, goal, experience, days, routine, json.dumps(data)))
+        INSERT INTO plans (user_id, goal, experience, days, routine)
+        VALUES (?, ?, ?, ?, ?)
+    ''', (
+        user_id,
+        data.get("Motivation", "N/A"),
+        data.get("Activity Level", "N/A"),
+        parse_training_days(data.get("Training Days")),
+        routine_json
+    ))
     conn.commit()
     conn.close()
 
+    # Save answers and routine to session for frontend use
+    session['onboarding_answers'] = data
+    session['routine'] = routine_data  # direct Python structure
+
     return jsonify({'success': True})
+
 
 # LOGIC ENGINE
 
-def generate_routine(goal, experience, days):
+def generate_sample_routine(goal, experience, days):
     base = {
         'Lose Weight': ['Cardio', 'HIIT', 'Core'],
         'Gain Muscle': ['Strength', 'Push/Pull', 'Leg Day'],
