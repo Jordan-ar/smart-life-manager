@@ -58,6 +58,9 @@ def init_db():
                 experience TEXT,
                 days INTEGER,
                 routine TEXT,
+                gender TEXT,
+                favorite_activities TEXT,
+                resources TEXT,
                 FOREIGN KEY(user_id) REFERENCES users(id)
             )
         ''')
@@ -181,25 +184,46 @@ def onboarding():
     if 'user_id' not in session:
         return redirect(url_for('signin'))
 
-    conn = sqlite3.connect(DB)
-    c = conn.cursor()
-
-    # STEP 3: Check if user already has a plan
-    c.execute("SELECT * FROM plans WHERE user_id = ?", (session['user_id'],))
-    existing_plan = c.fetchone()
-
-    if existing_plan:
-        conn.close()
-        return redirect(url_for('dashboard'))  # Skip onboarding if already completed
-
     if request.method == 'POST':
+        gender = request.form.get('gender', '')
+        favorite_activities = request.form.get('favorite_activities', '')
+        resources = request.form.get('resources', '')
         goal = request.form['goal']
         experience = request.form['experience']
-        days = int(request.form['days'])
-        workout_time = request.form.get('workout_time', '60')  # Replace with real field names if needed
+        days_raw = request.form.get('days', '').strip().lower().replace("–", "-").replace(" to ", "-")
+        print("Received days_raw:", days_raw)
+
+        days_map = {
+            "1-2": 2,
+            "3-4": 4,
+            "5-6": 6,
+            "7": 7
+        }
+
+        days = days_map.get(days_raw)
+        if not days:
+            return f"Invalid input for training days: {days_raw}", 400
+
+        workout_time_raw = request.form.get('workout_time', '60')
+        time_map = {
+            "15-30": 22,
+            "30-40": 35,
+            "45-60": 52,
+            "60-75": 67,
+            "90-120": 105
+        }
+        workout_time = time_map.get(workout_time_raw)
+        if not workout_time:
+            return "Invalid input for workout time", 400
         activity_level = request.form.get('activity_level', 'Moderate')
-        current_weight = request.form.get('current_weight', '80')
-        goal_weight = request.form.get('goal_weight', '70')
+        cw_raw = request.form.get('current_weight', '')
+        if not cw_raw.isdigit():
+            return "Invalid input for current weight", 400
+        current_weight = int(cw_raw)
+        gw_raw = request.form.get('goal_weight', '')
+        if not gw_raw.isdigit():
+            return "Invalid input for goal weight", 400
+        goal_weight = int(gw_raw)
 
         user_data = {
             "goal": goal,
@@ -208,33 +232,58 @@ def onboarding():
             "workout_time": workout_time,
             "activity_level": activity_level,
             "current_weight": current_weight,
-            "goal_weight": goal_weight
+            "goal_weight": goal_weight,
+            "gender": gender,
+            "favorite_activities": favorite_activities,
+            "resources": resources
         }
 
-        routine = generate_routine(user_data)  # Uses AI
+        routine = generate_routine(user_data)
 
-        # Optional but recommended: Save to session for use in other routes
-        session['onboarding_answers'] = user_data
-        session['routine'] = routine
+        #  BONUS: Validate AI routine
+        if isinstance(routine, list) and len(routine) > 0 and isinstance(routine[0], dict) and "day" in routine[0] and "exercises" in routine[0]:
+            session['onboarding_answers'] = user_data
+            session['routine'] = routine
 
-        # Optional: Convert to JSON string if storing in DB
-        import json
-        routine_json = json.dumps(routine)
+            import json
+            routine_json = json.dumps(routine)
 
-        conn = sqlite3.connect(DB)
-        c = conn.cursor()
-        c.execute('''
-            INSERT INTO plans (user_id, goal, experience, days, routine)
-            VALUES (?, ?, ?, ?, ?)
-        ''', (session['user_id'], goal, experience, days, routine_json))
-        conn.commit()
-        conn.close()
+            conn = sqlite3.connect(DB)
+            c = conn.cursor()
+            c.execute('''
+                INSERT INTO plans (user_id, goal, experience, days, routine, gender, favorite_activities, resources)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                session['user_id'],
+                goal,
+                experience,
+                days,
+                routine_json,
+                gender,
+                favorite_activities,
+                resources
+            ))
+            conn.commit()
+            conn.close()
 
-        return render_template('results.html', routine=routine)
+            return render_template('results.html', routine=routine)
+        else:
+            flash(" Failed to generate a valid plan. Try again.")
+            return redirect(url_for('onboarding'))
 
-
+    #  GET request handling
+    conn = sqlite3.connect(DB)
+    c = conn.cursor()
+    c.execute("SELECT * FROM plans WHERE user_id = ?", (session['user_id'],))
+    existing_plan = c.fetchone()
     conn.close()
+
+    if existing_plan:
+        return redirect(url_for('dashboard'))
+
     return render_template('onboarding.html')
+
+
 
 @app.route('/dashboard')
 def dashboard():

@@ -1,3 +1,4 @@
+console.log("AI routine structure:", aiRoutine);
 const days = document.querySelectorAll(".day-circle");
 const subtitle = document.getElementById("plan-subtitle");
 const dayCard = document.getElementById("day-card");

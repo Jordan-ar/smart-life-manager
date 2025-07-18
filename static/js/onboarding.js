@@ -262,27 +262,28 @@ document.addEventListener("DOMContentLoaded", () => {
 	handleCheckboxStep({ stepId: "question-step-11", nextBtnId: "next-btn-11", resultKey: "Favorite Activities", nextStepIndex: 12, backBtnId: "back-btn-11", backStepIndex: 10 });
 	handleCheckboxStep({ stepId: "question-step-12", nextBtnId: "next-btn-12", resultKey: "Available Resources", nextStepIndex: 13, backBtnId: "back-btn-12", backStepIndex: 11 });
 
-	document.getElementById("next-btn-12").addEventListener("click", () => {
-		console.log("Sending answers:", answers);
-		fetch("/save_onboarding", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify(answers),
-		})
-			.then(res => res.json())
-			.then(data => {
-				if (data.success) {
-					window.location.href = "/results";
-				} else {
-					console.error("Error saving data:", data.error);
-					alert("Oops! Couldn't save your data.");
-				}
-			})
-			.catch(err => {
-				console.error("Network error:", err);
-				alert("Something went wrong. Try again!");
-			});
+	// Fill in the hidden inputs with the answers and submit the form
+	const form = document.getElementById("onboarding-form");
+	form.addEventListener("submit", (e) => {
+		e.preventDefault(); //  prevent premature submit
+
+		// Populate hidden fields
+		document.getElementById("goal-input").value = answers["Motivation"] || "";
+		document.getElementById("experience-input").value = answers["Goal Speed"] || "";
+		document.getElementById("days-input").value = answers["Training Days"];
+		document.getElementById("workout-time-input").value = answers["Daily Time"] || "";
+		document.getElementById("activity-level-input").value = answers["Activity Level"] || "";
+		const currentWeight = parseInt(answers["Current Weight"]);
+		document.getElementById("current-weight-input").value = isNaN(currentWeight) ? "" : currentWeight;
+		const goalWeight = parseInt(answers["Goal Weight"]);
+		document.getElementById("goal-weight-input").value = isNaN(goalWeight) ? "" : goalWeight;
+		document.getElementById("gender-input").value = answers["Gender"] || "";
+		document.getElementById("favorite-activities-input").value = (answers["Favorite Activities"] || []).join(", ");
+		document.getElementById("resources-input").value = (answers["Available Resources"] || []).join(", ");
+
+		console.log("SUBMITTING! Days:", answers["Training Days"]); // debug log
+
+		// Submit form after setting everything
+		form.submit();
 	});
-});
+})
