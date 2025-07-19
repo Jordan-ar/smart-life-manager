@@ -215,11 +215,14 @@ def onboarding():
         workout_time = time_map.get(workout_time_raw)
         if not workout_time:
             return "Invalid input for workout time", 400
+
         activity_level = request.form.get('activity_level', 'Moderate')
+
         cw_raw = request.form.get('current_weight', '')
         if not cw_raw.isdigit():
             return "Invalid input for current weight", 400
         current_weight = int(cw_raw)
+
         gw_raw = request.form.get('goal_weight', '')
         if not gw_raw.isdigit():
             return "Invalid input for goal weight", 400
@@ -240,38 +243,32 @@ def onboarding():
 
         routine = generate_routine(user_data)
 
-        #  BONUS: Validate AI routine
-        if isinstance(routine, list) and len(routine) > 0 and isinstance(routine[0], dict) and "day" in routine[0] and "exercises" in routine[0]:
-            session['onboarding_answers'] = user_data
-            session['routine'] = routine
+        import json
+        routine_json = json.dumps(routine)
 
-            import json
-            routine_json = json.dumps(routine)
+        conn = sqlite3.connect(DB)
+        c = conn.cursor()
+        c.execute('''
+            INSERT INTO plans (user_id, goal, experience, days, routine, gender, favorite_activities, resources)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            session['user_id'],
+            goal,
+            experience,
+            days,
+            routine_json,
+            gender,
+            favorite_activities,
+            resources
+        ))
+        conn.commit()
+        conn.close()
 
-            conn = sqlite3.connect(DB)
-            c = conn.cursor()
-            c.execute('''
-                INSERT INTO plans (user_id, goal, experience, days, routine, gender, favorite_activities, resources)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (
-                session['user_id'],
-                goal,
-                experience,
-                days,
-                routine_json,
-                gender,
-                favorite_activities,
-                resources
-            ))
-            conn.commit()
-            conn.close()
+        session['onboarding_answers'] = user_data
+        session['plan'] = routine
 
-            return render_template('results.html', routine=routine)
-        else:
-            flash(" Failed to generate a valid plan. Try again.")
-            return redirect(url_for('onboarding'))
+        return redirect(url_for('results'))
 
-    #  GET request handling
     conn = sqlite3.connect(DB)
     c = conn.cursor()
     c.execute("SELECT * FROM plans WHERE user_id = ?", (session['user_id'],))
@@ -407,27 +404,20 @@ def upload_profile_photo():
         print("Upload error:", e)
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route("/results")
+@app.route('/results')
 def results():
-    if 'onboarding_answers' not in session:
+    plan = session.get("plan")
+    if not plan:
         return redirect(url_for('onboarding'))
 
-    answers = session['onboarding_answers']
-
-    current_weight = int(answers.get("Current Weight", 0))
-    goal_weight = int(answers.get("Goal Weight", 0))
-    weight_change = goal_weight - current_weight
-    duration = answers.get("Goal Speed", "Balanced pace")
-    time_per_day = answers.get("Daily Time", "30-40")
-    training_days = answers.get("Training Days", "3-4")
-
-    return render_template(
-        "results.html",
-        weight_change=weight_change,
-        time_per_day=time_per_day,
-        training_days=training_days,
-        duration=duration
+    return render_template("results.html",
+        weight_change=plan["weight_change"],
+        duration=plan["duration"],
+        training_days=plan["training_days"],
+        time_per_day=plan["time_per_day"],
+        routine=plan["routine"]
     )
+
 
 @app.route('/save_onboarding', methods=['POST'])
 def save_onboarding():
