@@ -270,6 +270,12 @@ document.addEventListener("DOMContentLoaded", () => {
 		// Populate hidden fields
 		document.getElementById("goal-input").value = answers["Motivation"] || "";
 		document.getElementById("experience-input").value = answers["Goal Speed"] || "";
+		if (!answers["Training Days"]) {
+			const selectedBtn = document.querySelector("#question-step-8 .option-btn.selected");
+			if (selectedBtn) {
+				answers["Training Days"] = selectedBtn.dataset.value;
+			}
+		}
 		document.getElementById("days-input").value = answers["Training Days"];
 		document.getElementById("workout-time-input").value = answers["Daily Time"] || "";
 		document.getElementById("activity-level-input").value = answers["Activity Level"] || "";
