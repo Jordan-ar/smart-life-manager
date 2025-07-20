@@ -16,15 +16,7 @@ days.forEach(day => {
 });
 
 // Mockup Routine Plan.
-const routines = {
-	Mon: { title: "Fat Burn · Today", desc: "Blasts calories and boosts endurance", exercises: ["Jumping Jacks", "Plank Jacks", "Squats"] },
-	Tue: { title: "Core Power", desc: "Focus on core muscles", exercises: ["Crunches", "Leg Raises", "Plank Hold"] },
-	Wed: { title: "Cardio Boost", desc: "Raise your heart rate", exercises: ["Burpees", "High Knees", "Butt Kickers"] },
-	Thu: { title: "Lower Body", desc: "Target glutes and legs", exercises: ["Lunges", "Step Ups", "Wall Sit"] },
-	Fri: { title: "Upper Body", desc: "Arms and shoulders", exercises: ["Push Ups", "Tricep Dips", "Arm Circles"] },
-	Sat: { title: "Rest Day", desc: "No exercises today", exercises: [] },
-	Sun: { title: "Stretch & Mobility", desc: "Gentle recovery", exercises: ["Neck Rolls", "Hip Circles", "Forward Fold"] }
-};
+const routines = aiRoutine;
 
 // Mockup Exercise details.
 const exerciseDetails = {
@@ -45,8 +37,19 @@ function updateCard(dayName) {
 	selectedBtn.classList.add("active");
 
 	const selected = routines[dayName];
-	dayCard.querySelector(".card-title").innerHTML = `<i class="fas fa-fire"></i> ${selected.title}`;
-	dayCard.querySelector(".card-sub").textContent = selected.desc;
+
+	if (!selected) {
+		dayCard.querySelector(".card-title").innerHTML = `<i class="fas fa-bed"></i> Rest Day`;
+		dayCard.querySelector(".card-sub").textContent = "No exercises planned for today. Enjoy your rest!";
+
+		// Borra ejercicios anteriores si había
+		const oldExercises = dayCard.querySelectorAll(".exercise-card");
+		oldExercises.forEach(e => e.remove());
+
+		document.getElementById("completion-message").style.display = "none";
+		return; // Salimos, no renderizamos nada más
+	}
+
 
 	const oldExercises = dayCard.querySelectorAll(".exercise-card");
 	oldExercises.forEach(e => e.remove());

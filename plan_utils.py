@@ -99,6 +99,8 @@ def generate_plan(user_data):
         }
 
     return {
+        "goal": goal,
+    		"experience": activity,
         "bmi": bmi,
         "estimated_weeks": weeks,
         "session_minutes": session_time,

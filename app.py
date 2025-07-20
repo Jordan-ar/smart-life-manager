@@ -12,11 +12,16 @@ import glob
 from plan_utils import generate_plan
 import json
 from routine_builder import build_routine
+from flask_session import Session
 
 # Load environment variables from .env
 load_dotenv()
 
 app = Flask(__name__)
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_PERMANENT'] = False
+Session(app)
+
 
 # Google OAuth setup
 app.secret_key = os.getenv("SECRET_KEY")  # Load from .env
@@ -129,8 +134,10 @@ def signup():
 
         conn.close()
         session['user_id'] = user_id  
+        session['needs_onboarding'] = True  # 🪄 Marca que aún no ha hecho onboarding
         flash('Account created successfully!')
         return redirect(url_for('onboarding'))
+
 
     return render_template('signup.html')  # fallback for GET request
 
@@ -194,19 +201,17 @@ def dashboard():
 
     user_id = session['user_id']
 
-    # Verificar si el usuario ya tiene plan
     conn = sqlite3.connect(DB)
     c = conn.cursor()
     c.execute("SELECT id FROM plans WHERE user_id = ?", (user_id,))
     existing_plan = c.fetchone()
     conn.close()
 
-    # Si NO tiene plan, lo mandamos al onboarding
     if not existing_plan:
         return redirect(url_for('onboarding'))
 
-    # Si SÍ tiene plan, mostrar dashboard normal
     return render_template('dashboard.html')
+
 
 @app.route('/logout')
 def logout():
@@ -219,8 +224,37 @@ def reset_password():
 
 @app.route("/calendar")
 def calendar():
-    routine = session.get("routine", [])
-    return render_template("calendar.html", routine=json.dumps(routine))
+    # ⛑️ Verifica si hay plan en sesión
+    plan = session.get("fitness_plan")
+    if not plan:
+        flash("Please complete the onboarding first.")
+        return render_template("calendar.html", routine={}) 
+
+    # 🧠 Cargar ejercicios desde tu JSON real
+    exercise_data = json.load(open("static/data/exercises.json"))
+    equipment_available = plan.get("equipment", ["body only"])
+
+    routine = build_routine(plan, exercise_data, equipment_available)
+
+    # 📅 Mapea día número a nombre
+    day_map = {
+        1: "Mon", 2: "Tue", 3: "Wed",
+        4: "Thu", 5: "Fri", 6: "Sat", 7: "Sun"
+    }
+
+    # 🗓️ Solo semana 1 por ahora
+    week_1 = routine[0]
+    routine_for_js = {}
+
+    for day in week_1:
+        day_name = day_map.get(day["day"], "Mon")
+        routine_for_js[day_name] = {
+            "title": f"{day['type']} · Week 1",
+            "desc": f"{day['type']} training ({day['intensity']} intensity, {day['duration']} mins)",
+            "exercises": [ex["name"] for ex in day["exercises"]]
+        }
+
+    return render_template("calendar.html", routine=routine_for_js)
 
 @app.route('/profile')
 def profile():
@@ -290,16 +324,21 @@ def upload_profile_photo():
 @app.route('/results')
 def results():
     plan = session.get("fitness_plan", {})
+    print("👉 PLAN EN RESULTS:", plan)
+    print("👉 GOAL WEIGHT:", session.get("goal_weight"))
+    print("👉 CURRENT WEIGHT:", session.get("current_weight"))
+    print("👉 DAYS:", plan.get("training_days"))
+
     goal_weight = float(session.get("goal_weight", 0))
     current_weight = float(session.get("current_weight", 0))
     weight_loss = round(current_weight - goal_weight, 1)
 
     return render_template("results.html",
-    duration=plan.get("estimated_weeks", "?"),
-    weight_goal=weight_loss,
-    days=len(plan.get("training_days", [])),
-    time=plan.get("session_minutes", "?"),
-		weight_unit=session.get("weight_unit", "kg"))
+        duration=plan.get("estimated_weeks", "?"),
+        weight_goal=weight_loss,
+        days=len(plan.get("training_days", [])),
+        time=plan.get("session_minutes", "?"),
+        weight_unit=session.get("weight_unit", "kg"))
 
 
 @app.route('/save_onboarding', methods=['POST'])
@@ -313,7 +352,7 @@ def save_onboarding():
 
     try:
         plan = generate_plan(data)
-        exercise_data = []  # luego puedes cargar tu JSON aquí
+        exercise_data = json.load(open("static/data/exercises.json"))  # ✅ usa tu dataset real aquí
         routine = build_routine(plan, exercise_data, data.get("equipment", []))
 
         session['fitness_plan'] = plan
@@ -332,8 +371,8 @@ def save_onboarding():
             VALUES (?, ?, ?, ?, ?)
         """, (
             session['user_id'],
-            plan.get('goal_type', 'Unknown'),
-            plan.get('experience_level', 'Unknown'),
+            plan.get('goal', 'Unknown'),
+            plan.get('experience', 'Unknown'),
             len(plan.get('training_days', [])),
             json.dumps(routine)
         ))
