@@ -9,6 +9,7 @@ import base64
 from flask import jsonify
 from datetime import datetime
 import glob
+from plan_utils import generate_plan
 
 # Load environment variables from .env
 load_dotenv()
@@ -315,7 +316,17 @@ def upload_profile_photo():
 
 @app.route('/results')
 def results():
-    return render_template('results.html')
+    plan = session.get("fitness_plan", {})
+    goal_weight = float(session.get("goal_weight", 0))
+    current_weight = float(session.get("current_weight", 0))
+    weight_loss = round(current_weight - goal_weight, 1)
+
+    return render_template("results.html",
+    duration=plan.get("estimated_weeks", "?"),
+    weight_goal=weight_loss,
+    days=len(plan.get("training_days", [])),
+    time=plan.get("session_minutes", "?"))
+
 
 @app.route('/save_onboarding', methods=['POST'])
 def save_onboarding():
@@ -326,31 +337,20 @@ def save_onboarding():
     if not data:
         return jsonify({'success': False, 'error': 'No data received'}), 400
 
-    import json
-    goal = data.get('Motivation')
-    experience = data.get('Activity Level')
-    days = data.get('Training Days')
-    user_id = session['user_id']
+    try:
+        plan = generate_plan(data)
 
-    if isinstance(days, str):
-        try:
-            days = int(days)
-        except:
-            days = 3
+        # Guardamos info en session para mostrar en results
+        session['fitness_plan'] = plan
+        session['goal_weight'] = float(data.get('goal_weight'))
+        session['current_weight'] = float(data.get('current_weight'))
+        session['days_per_week'] = data.get('days_per_week')
+        session['time_available'] = data.get('time_available')
 
-    routine = "This is a placeholder plan." 
-
-    conn = sqlite3.connect(DB)
-    c = conn.cursor()
-    c.execute('''
-        INSERT INTO plans (user_id, goal, experience, days, routine, answers_json)
-        VALUES (?, ?, ?, ?, ?, ?)
-    ''', (user_id, goal, experience, days, routine, json.dumps(data)))
-    conn.commit()
-    conn.close()
-
-    return jsonify({'success': True})
-
+        return jsonify({'success': True})  # Tu JS luego redirecciona a /results
+    except Exception as e:
+        print("Plan generation error:", e)
+        return jsonify({'success': False, 'error': str(e)}), 500
 # LOGIC ENGINE
 
 def generate_routine(goal, experience, days):
@@ -369,4 +369,3 @@ def generate_routine(goal, experience, days):
 
 if __name__ == '__main__':
     app.run(debug=True)
-

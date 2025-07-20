@@ -263,12 +263,33 @@ document.addEventListener("DOMContentLoaded", () => {
 	handleCheckboxStep({ stepId: "question-step-12", nextBtnId: "next-btn-12", resultKey: "Available Resources", nextStepIndex: 13, backBtnId: "back-btn-12", backStepIndex: 11 });
 
 	document.getElementById("next-btn-12").addEventListener("click", () => {
+		const formatted = {
+			goal: answers["Motivation"],
+			gender: answers["Gender"],
+			age: answers["Age"],
+			// Altura
+			height_unit: isNaN(answers["Height"]) ? "imperial" : "metric",
+			height_cm: !isNaN(answers["Height"]) ? answers["Height"] : undefined,
+			height_ft: isNaN(answers["Height"]) ? Math.floor(answers["Height"] / 12) : undefined,
+			height_in: isNaN(answers["Height"]) ? answers["Height"] % 12 : undefined,
+			// Peso actual
+			weight_unit: isNaN(answers["Current Weight"]) ? "lbs" : "kg",
+			current_weight: answers["Current Weight"],
+			goal_weight: answers["Goal Weight"],
+			speed: answers["Goal Speed"],
+			days_per_week: answers["Training Days"],
+			time_available: answers["Daily Time"],
+			activity_level: answers["Activity Level"],
+			favorite_styles: answers["Favorite Activities"],
+			equipment: answers["Available Resources"]
+		};
+
 		fetch("/save_onboarding", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
 			},
-			body: JSON.stringify(answers),
+			body: JSON.stringify(formatted),
 		})
 			.then(res => res.json())
 			.then(data => {

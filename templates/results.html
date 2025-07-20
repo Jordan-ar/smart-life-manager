@@ -16,17 +16,17 @@
 			<div id="plan-ready-screen" class="welcome-card">
 				<h1> <i class="fas fa-check-circle icon"></i> Your Plan is Ready!</h1>
 				<div class="buttons">
-					<div id="estimated-time" class="option-btn selected">
-						<i class="fas fa-hourglass-half"></i> Duration: 10 weeks
+					<div class="option-btn selected">
+						<i class="fas fa-hourglass-half"></i> Duration: {{ duration }} weeks
 					</div>
-					<div id="goal-summary" class="option-btn selected">
-						<i class="fas fa-bullseye"></i> Goal: Lose 8 kg
+					<div class="option-btn selected">
+						<i class="fas fa-bullseye"></i> Goal: Lose {{ weight_goal }} kg
 					</div>
-					<div id="frequency-summary" class="option-btn selected">
-						<i class="fas fa-calendar-check"></i> Frequency: 4x / week
+					<div class="option-btn selected">
+						<i class="fas fa-calendar-check"></i> Frequency: {{ days }}x / week
 					</div>
-					<div id="time-summary" class="option-btn selected">
-						<i class="fas fa-stopwatch"></i> Time: 30 mins/day
+					<div class="option-btn selected">
+						<i class="fas fa-stopwatch"></i> Time: {{ time }} mins/day
 					</div>
 				</div>
 				<a href="{{ url_for('home') }}" id="start-plan-btn" class="btn primary full-btn">Start My Plan</a>
