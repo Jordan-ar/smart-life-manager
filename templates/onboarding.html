@@ -70,7 +70,7 @@
 			<div id="question-step-3" class="welcome-card hidden">
 				<h1> How old are you?</h1>
 				<label for="age-input" class="sr-only">Age</label>
-				<input type="number" id="age-input" name="age" class="form-input" min="13" max="120" placeholder="Enter your age">
+				<input type="number" id="age-input" name="age" class="form-input" min="13" max="120" placeholder="Enter your age" required>
 				<div class="step-buttons">
 					<button id="back-btn-3" class="btn secondary full-btn">Back</button>
 					<button id="next-btn-3" class="btn primary full-btn" disabled>Next</button>
@@ -89,12 +89,12 @@
 					<label for="feet-input" class="sr-only">Feet</label>
 					<input type="number" id="feet-input" class="form-input" placeholder="Feet" min="3" max="8">
 					<label for="inches-input" class="sr-only">Inches</label>
-					<input type="number" id="inches-input" class="form-input" placeholder="Inches" min="0" max="11">
+					<input type="number" id="inches-input" class="form-input" placeholder="Inches" min="0" max="11" required>
 				</div>
 				<!-- Inputs: cm-->
 				<div id="metric-inputs" class="form-row hidden">
 					<label for="cm-input" class="sr-only">Centimeters</label>
-					<input type="number" id="cm-input" class="form-input" placeholder="Centimeters" min="90" max="250">
+					<input type="number" id="cm-input" class="form-input" placeholder="Centimeters" min="90" max="250" required>
 				</div>
 				<div class="step-buttons">
 					<button id="back-btn-4" class="btn secondary full-btn">Back</button>
@@ -115,13 +115,13 @@
 				<!-- Input lbs -->
 				<div id="lbs-input-group">
 					<label for="weight-input-lbs" class="sr-only">Weight in lbs</label>
-					<input type="number" id="weight-input-lbs" class="form-input" placeholder="Enter your weight in lbs" min="66" max="550">
+					<input type="number" id="weight-input-lbs" class="form-input" placeholder="Enter your weight in lbs" min="66" max="550" required>
 				</div>
 
 				<!-- Input kg -->
 				<div id="kg-input-group" class="hidden">
 					<label for="weight-input-kg" class="sr-only">Weight in kg</label>
-					<input type="number" id="weight-input-kg" class="form-input" placeholder="Enter your weight in kg" min="30" max="250">
+					<input type="number" id="weight-input-kg" class="form-input" placeholder="Enter your weight in kg" min="30" max="250" required>
 				</div>
 
 				<div class="step-buttons">
@@ -143,13 +143,13 @@
 				<!-- Input lbs -->
 				<div id="goal-lbs-input-group">
 					<label for="goal-weight-input-lbs" class="sr-only">Goal weight in lbs</label>
-					<input type="number" id="goal-weight-input-lbs" class="form-input" placeholder="Enter your goal weight in lbs" min="66" max="550">
+					<input type="number" id="goal-weight-input-lbs" class="form-input" placeholder="Enter your goal weight in lbs" min="66" max="550" required>
 				</div>
 
 				<!-- Input kg -->
 				<div id="goal-kg-input-group" class="hidden">
 					<label for="goal-weight-input-kg" class="sr-only">Goal weight in kg</label>
-					<input type="number" id="goal-weight-input-kg" class="form-input" placeholder="Enter your goal weight in kg" min="30" max="250">
+					<input type="number" id="goal-weight-input-kg" class="form-input" placeholder="Enter your goal weight in kg" min="30" max="250" required>
 				</div>
 
 				<div class="step-buttons">
@@ -205,14 +205,14 @@
 			<div id="question-step-9" class="welcome-card hidden">
 				<h1>How much time can you dedicate per day?</h1>
 				<div class="buttons">
-					<button class="option-btn" data-value="10-20">
-						<i class="fas fa-clock"></i> 10–20 min
+					<button class="option-btn" data-value="15-30">
+						<i class="fas fa-clock"></i> 15–30 min
 					</button>
 					<button class="option-btn" data-value="30-40">
 						<i class="fas fa-stopwatch"></i> 30–40 min
 					</button>
-					<button class="option-btn" data-value="50-60">
-						<i class="fas fa-hourglass-half"></i> 50–60 min
+					<button class="option-btn" data-value="45-60">
+						<i class="fas fa-hourglass-half"></i> 45–60 min
 					</button>
 					<button class="option-btn" data-value="90-120">
 						<i class="fas fa-hourglass-end"></i> 90–120 min
@@ -282,13 +282,31 @@
 					<label class="option-checkbox"><input type="checkbox" value="Exercise ball"> <i class="fas fa-circle"></i> Exercise Ball</label>
 					<label class="option-checkbox"><input type="checkbox" value="None"> <i class="fas fa-star"></i> No Equipment</label>
 				</div>
-				<div class="step-buttons">
-					<button id="back-btn-12" class="btn secondary full-btn">Back</button>
-					<button id="next-btn-12" class="btn primary full-btn">Create Plan</button>
-				</div>
+
+				<form id="onboarding-form" method="POST" action="/onboarding">
+
+					<div class="step-buttons">
+						<button id="back-btn-12" class="btn secondary full-btn" type="button">Back</button>
+						<button id="next-btn-12" class="hidden"></button>
+
+						<!-- Hidden inputs passed to backend -->
+						<input type="hidden" name="goal" id="goal-input">
+						<input type="hidden" name="experience" id="experience-input">
+						<input type="hidden" name="days" id="days-input">
+						<input type="hidden" name="workout_time" id="workout-time-input">
+						<input type="hidden" name="activity_level" id="activity-level-input">
+						<input type="hidden" name="current_weight" id="current-weight-input">
+						<input type="hidden" name="goal_weight" id="goal-weight-input">
+
+						<!--  New hidden fields -->
+						<input type="hidden" name="gender" id="gender-input">
+						<input type="hidden" name="favorite_activities" id="favorite-activities-input">
+						<input type="hidden" name="available_resources" id="resources-input">
+
+						<button type="submit" class="btn primary full-btn">Create Plan</button>
+					</div>
+				</form>
 			</div>
-
 		</div>
-
 	</body>
 </html>
