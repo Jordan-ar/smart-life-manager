@@ -10,6 +10,8 @@ from flask import jsonify
 from datetime import datetime
 import glob
 from plan_utils import generate_plan
+import json
+from routine_builder import build_routine
 
 # Load environment variables from .env
 load_dotenv()
@@ -167,43 +169,21 @@ def signin():
 
     return render_template('signin.html')
 
-
-@app.route('/onboarding', methods=['GET', 'POST'])
+@app.route('/onboarding')
 def onboarding():
-    if 'user_id' not in session:
-        return redirect(url_for('signin'))
+	if 'user_id' not in session:
+		return redirect(url_for('signin'))
 
-    conn = sqlite3.connect(DB)
-    c = conn.cursor()
+	conn = sqlite3.connect(DB)
+	c = conn.cursor()
+	c.execute("SELECT * FROM plans WHERE user_id = ?", (session['user_id'],))
+	existing_plan = c.fetchone()
+	conn.close()
 
-    # STEP 3: Check if user already has a plan
-    c.execute("SELECT * FROM plans WHERE user_id = ?", (session['user_id'],))
-    existing_plan = c.fetchone()
+	if existing_plan:
+		return redirect(url_for('dashboard'))
 
-    if existing_plan:
-        conn.close()
-        return redirect(url_for('dashboard'))  # Skip onboarding if already completed
-
-    if request.method == 'POST':
-        goal = request.form['goal']
-        experience = request.form['experience']
-        days = int(request.form['days'])
-
-        routine = generate_routine(goal, experience, days)
-
-        conn = sqlite3.connect(DB)
-        c = conn.cursor()
-        c.execute('''
-            INSERT INTO plans (user_id, goal, experience, days, routine)
-            VALUES (?, ?, ?, ?, ?)
-        ''', (session['user_id'], goal, experience, days, routine))
-        conn.commit()
-        conn.close()
-
-        return render_template('results.html', routine=routine)
-
-    conn.close()
-    return render_template('onboarding.html')
+	return render_template('onboarding.html')
 
 @app.route('/dashboard')
 def dashboard():
@@ -244,10 +224,10 @@ def logout():
 def reset_password():
     return render_template('reset-password.html')
 
-@app.route('/calendar')
+@app.route("/calendar")
 def calendar():
-    ensure_user_session()
-    return render_template('calendar.html')
+    routine = session.get("routine", [])
+    return render_template("calendar.html", routine=json.dumps(routine))
 
 @app.route('/profile')
 def profile():
@@ -325,7 +305,8 @@ def results():
     duration=plan.get("estimated_weeks", "?"),
     weight_goal=weight_loss,
     days=len(plan.get("training_days", [])),
-    time=plan.get("session_minutes", "?"))
+    time=plan.get("session_minutes", "?"),
+		weight_unit=session.get("weight_unit", "kg"))
 
 
 @app.route('/save_onboarding', methods=['POST'])
@@ -339,18 +320,34 @@ def save_onboarding():
 
     try:
         plan = generate_plan(data)
+        exercise_data = []  # luego puedes cargar tu JSON aquí
+        routine = build_routine(plan, exercise_data, data.get("equipment", []))
 
-        # Guardamos info en session para mostrar en results
         session['fitness_plan'] = plan
+        session['routine'] = routine
+        session['weight_unit'] = data.get('weight_unit', 'kg')
         session['goal_weight'] = float(data.get('goal_weight'))
         session['current_weight'] = float(data.get('current_weight'))
         session['days_per_week'] = data.get('days_per_week')
         session['time_available'] = data.get('time_available')
 
-        return jsonify({'success': True})  # Tu JS luego redirecciona a /results
+        return jsonify({'success': True})
     except Exception as e:
         print("Plan generation error:", e)
         return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route("/generate", methods=["POST"])
+def generate():
+    user_data = request.get_json()  # o usa form si lo envías así
+    plan = generate_plan(user_data)
+    
+    # Define exercise_data here or import from a module
+    exercise_data = []  # TODO: Replace with actual exercise data or import from a file/module
+    
+    routine = build_routine(plan, exercise_data, user_data.get("resources", []))
+    session["routine"] = routine  # 💾 Guardamos la rutina en la sesión
+
+    return jsonify(success=True)
 # LOGIC ENGINE
 
 def generate_routine(goal, experience, days):

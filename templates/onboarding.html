@@ -283,29 +283,27 @@
 					<label class="option-checkbox"><input type="checkbox" value="None"> <i class="fas fa-star"></i> No Equipment</label>
 				</div>
 
-				<form id="onboarding-form" method="POST" action="/onboarding">
 
-					<div class="step-buttons">
-						<button id="back-btn-12" class="btn secondary full-btn" type="button">Back</button>
-						<button id="next-btn-12" class="hidden"></button>
+				<div class="step-buttons">
+					<button id="back-btn-12" class="btn secondary full-btn" type="button">Back</button>
 
-						<!-- Hidden inputs passed to backend -->
-						<input type="hidden" name="goal" id="goal-input">
-						<input type="hidden" name="experience" id="experience-input">
-						<input type="hidden" name="days" id="days-input">
-						<input type="hidden" name="workout_time" id="workout-time-input">
-						<input type="hidden" name="activity_level" id="activity-level-input">
-						<input type="hidden" name="current_weight" id="current-weight-input">
-						<input type="hidden" name="goal_weight" id="goal-weight-input">
+					<!-- Hidden inputs passed to backend -->
+					<input type="hidden" name="goal" id="goal-input">
+					<input type="hidden" name="experience" id="experience-input">
+					<input type="hidden" name="days" id="days-input">
+					<input type="hidden" name="workout_time" id="workout-time-input">
+					<input type="hidden" name="activity_level" id="activity-level-input">
+					<input type="hidden" name="current_weight" id="current-weight-input">
+					<input type="hidden" name="goal_weight" id="goal-weight-input">
 
-						<!--  New hidden fields -->
-						<input type="hidden" name="gender" id="gender-input">
-						<input type="hidden" name="favorite_activities" id="favorite-activities-input">
-						<input type="hidden" name="available_resources" id="resources-input">
+					<!--  New hidden fields -->
+					<input type="hidden" name="gender" id="gender-input">
+					<input type="hidden" name="favorite_activities" id="favorite-activities-input">
+					<input type="hidden" name="available_resources" id="resources-input">
 
-						<button type="submit" class="btn primary full-btn">Create Plan</button>
-					</div>
-				</form>
+					<button id="next-btn-12" type="button" class="btn primary full-btn">Create Plan</button>
+
+				</div>
 			</div>
 		</div>
 	</body>

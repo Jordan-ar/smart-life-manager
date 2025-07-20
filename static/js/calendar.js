@@ -1,4 +1,3 @@
-console.log("AI routine structure:", aiRoutine);
 const days = document.querySelectorAll(".day-circle");
 const subtitle = document.getElementById("plan-subtitle");
 const dayCard = document.getElementById("day-card");
@@ -16,65 +15,27 @@ days.forEach(day => {
 	}
 });
 
-// Routine Plan.
-const routines = formatRoutine(aiRoutine);
+// Mockup Routine Plan.
+const routines = {
+	Mon: { title: "Fat Burn · Today", desc: "Blasts calories and boosts endurance", exercises: ["Jumping Jacks", "Plank Jacks", "Squats"] },
+	Tue: { title: "Core Power", desc: "Focus on core muscles", exercises: ["Crunches", "Leg Raises", "Plank Hold"] },
+	Wed: { title: "Cardio Boost", desc: "Raise your heart rate", exercises: ["Burpees", "High Knees", "Butt Kickers"] },
+	Thu: { title: "Lower Body", desc: "Target glutes and legs", exercises: ["Lunges", "Step Ups", "Wall Sit"] },
+	Fri: { title: "Upper Body", desc: "Arms and shoulders", exercises: ["Push Ups", "Tricep Dips", "Arm Circles"] },
+	Sat: { title: "Rest Day", desc: "No exercises today", exercises: [] },
+	Sun: { title: "Stretch & Mobility", desc: "Gentle recovery", exercises: ["Neck Rolls", "Hip Circles", "Forward Fold"] }
+};
 
-// Set subtitle dynamically based on routine
-const planType = aiRoutine[0]?.type || "Workout";
-subtitle.textContent = `${planType} · Week 1`;
-
-// Create a quick lookup for reps from AI routine
-const exerciseRepsMap = {};
-aiRoutine.forEach(day => {
-	day.exercises.forEach(ex => {
-		if (ex.name && ex.reps) {
-			exerciseRepsMap[ex.name.toLowerCase()] = ex.reps;
-		}
-	});
-});
-
-// Exercise details.
-function getExerciseDetailsByName(name) {
-	for (let category of exerciseList) {
-		for (let exercise of category.exercises) {
-			if (exercise.name.toLowerCase() === name.toLowerCase()) {
-				return {
-					description: exercise.description || "No description available.",
-					reps: exercise.reps || "N/A",
-					image: exercise.gifUrl || "#",
-					target: exercise.target || "Unknown",
-					equipment: exercise.equipment || "Bodyweight"
-				};
-			}
-		}
+// Mockup Exercise details.
+const exerciseDetails = {
+	"Jumping Jacks": {
+		description: "Jumping jacks are a classic full-body cardio move that gets your heart pumping and your blood flowing. They improve coordination, stamina, and boost calorie burn fast! Perfect for warm-ups or quick sweat sessions. Let’s get that energy UP!",
+		reps: "15",
+		image: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdnh3MnlxN3F6NHp0dzFyNHVhcG5taGx5YmFoaWttY3l6MHk3bTRzdSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/ckMk3RKUK29lziaspI/giphy.gif",
+		target: "Full Body",
+		equipment: "None"
 	}
-	return null;
-}
-
-function formatRoutine(aiData) {
-	const dayAbbreviations = {
-		"Monday": "Mon",
-		"Tuesday": "Tue",
-		"Wednesday": "Wed",
-		"Thursday": "Thu",
-		"Friday": "Fri",
-		"Saturday": "Sat",
-		"Sunday": "Sun"
-	};
-
-	const formatted = {};
-
-	aiData.forEach(day => {
-		const abbr = dayAbbreviations[day.day] || day.day.slice(0, 3);
-		formatted[abbr] = {
-			title: `${day.type} · ${day.day}`,
-			desc: `Today's focus: ${day.type}`,
-			exercises: day.exercises.map(ex => ex.name)
-		};
-	});
-
-	return formatted;
-}
+};
 
 // Function to update the exercise routine card
 function updateCard(dayName) {
@@ -94,9 +55,9 @@ function updateCard(dayName) {
 		const div = document.createElement("div");
 		div.classList.add("exercise-card");
 		div.innerHTML = `
-	<div class="circle-check check-icon"></div>
-	<span class="exercise-text">${ex}</span>
-	<i class="fas fa-info-circle"></i>
+		<div class="circle-check check-icon"></div>
+		<span class="exercise-text">${ex}</span>
+		<i class="fas fa-info-circle"></i>
 	`;
 		dayCard.appendChild(div);
 	});
@@ -116,14 +77,12 @@ function updateCard(dayName) {
 	dayCard.querySelectorAll('.fa-info-circle').forEach(icon => {
 		icon.addEventListener('click', () => {
 			const name = icon.previousElementSibling.textContent.trim();
-			const data = getExerciseDetailsByName(name);
+			const data = exerciseDetails[name];
 
 			if (data) {
 				document.getElementById("modal-exercise-name").textContent = name;
 				document.getElementById("modal-exercise-description").textContent = data.description;
-				const repsFromAI = exerciseRepsMap[name.toLowerCase()];
-				document.getElementById("modal-exercise-reps").textContent = "Reps: " + (repsFromAI || data.reps);
-
+				document.getElementById("modal-exercise-reps").textContent = "Reps: " + data.reps;
 				document.getElementById("modal-exercise-image").src = data.image;
 
 				document.getElementById("modal-exercise-target").textContent = "Target: " + (data.target || "N/A");
@@ -174,4 +133,3 @@ function checkIfAllCompleted() {
 		}
 	}
 }
-

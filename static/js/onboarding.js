@@ -273,7 +273,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			height_ft: isNaN(answers["Height"]) ? Math.floor(answers["Height"] / 12) : undefined,
 			height_in: isNaN(answers["Height"]) ? answers["Height"] % 12 : undefined,
 			// Peso actual
-			weight_unit: isNaN(answers["Current Weight"]) ? "lbs" : "kg",
+			weight_unit: document.querySelector("#weight-toggle .toggle-btn.active")?.dataset.unit || "kg",
 			current_weight: answers["Current Weight"],
 			goal_weight: answers["Goal Weight"],
 			speed: answers["Goal Speed"],
