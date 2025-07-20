@@ -92,8 +92,22 @@ def ensure_user_session():
             conn.commit()
             user_id = c.lastrowid
 
-        conn.close()
+        # 🧠 Guardar user_id
         session['user_id'] = user_id
+
+        # 🧠 Cargar plan y rutina
+        c.execute("SELECT routine, plan FROM plans WHERE user_id = ?", (user_id,))
+        plan_data = c.fetchone()
+        conn.close()
+
+        if plan_data:
+            try:
+                session["routine"] = json.loads(plan_data[0])
+                session["fitness_plan"] = json.loads(plan_data[1])
+            except:
+                session["routine"] = []
+                session["fitness_plan"] = {}
+
 
 # ROUTES
 
@@ -161,12 +175,19 @@ def signin():
         if user and bcrypt.verify(password, user[1]):
             session['user_id'] = user[0]
 
-            c.execute("SELECT id FROM plans WHERE user_id = ?", (user[0],))
-            existing_plan = c.fetchone()
+            # 🚀 Carga plan y rutina desde DB
+            c.execute("SELECT routine, plan FROM plans WHERE user_id = ?", (user[0],))
+            plan_data = c.fetchone()
             conn.close()
 
-            if existing_plan:
-                return redirect(url_for('dashboard'))  
+            if plan_data:
+                try:
+                    session["routine"] = json.loads(plan_data[0])
+                    session["fitness_plan"] = json.loads(plan_data[1])
+                except:
+                    session["routine"] = []
+                    session["fitness_plan"] = {}
+                return redirect(url_for('dashboard'))
             else:
                 return redirect(url_for('onboarding'))  
         else:
@@ -175,6 +196,7 @@ def signin():
             return redirect(url_for('signin'))
 
     return render_template('signin.html')
+
 
 @app.route('/onboarding')
 def onboarding():
@@ -367,15 +389,17 @@ def save_onboarding():
         conn = sqlite3.connect(DB)
         c = conn.cursor()
         c.execute("""
-            INSERT INTO plans (user_id, goal, experience, days, routine)
-            VALUES (?, ?, ?, ?, ?)
-        """, (
-            session['user_id'],
-            plan.get('goal', 'Unknown'),
-            plan.get('experience', 'Unknown'),
-            len(plan.get('training_days', [])),
-            json.dumps(routine)
-        ))
+						INSERT INTO plans (user_id, goal, experience, days, routine, plan)
+						VALUES (?, ?, ?, ?, ?, ?)
+				""", (
+						session['user_id'],
+						plan.get('goal', 'Unknown'),
+						plan.get('experience', 'Unknown'),
+						len(plan.get('training_days', [])),
+						json.dumps(routine),
+						json.dumps(plan)
+				))
+
         conn.commit()
         conn.close()
 
