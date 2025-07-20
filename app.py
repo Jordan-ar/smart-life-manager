@@ -188,31 +188,24 @@ def onboarding():
 @app.route('/dashboard')
 def dashboard():
     ensure_user_session()
-    if 'user_id' in session:
-        return render_template('dashboard.html')
 
-    # Handle Google login
-    if google.authorized:
-        resp = google.get("/oauth2/v1/userinfo")
-        user_info = resp.json()
-        email = user_info["email"]
-        name = user_info.get("name", "Google User")
+    if 'user_id' not in session:
+        return redirect(url_for('signin'))
 
-    # Add or get user in DB
+    user_id = session['user_id']
+
+    # Verificar si el usuario ya tiene plan
     conn = sqlite3.connect(DB)
     c = conn.cursor()
-    c.execute("SELECT id FROM users WHERE email = ?", (email,))
-    user = c.fetchone()
-
-    if user:
-        user_id = user[0]
-    else:
-        c.execute("INSERT INTO users (name, email, password) VALUES (?, ?, ?)", (name, email, ""))
-        conn.commit()
-        user_id = c.lastrowid
-
+    c.execute("SELECT id FROM plans WHERE user_id = ?", (user_id,))
+    existing_plan = c.fetchone()
     conn.close()
-    session['user_id'] = user_id
+
+    # Si NO tiene plan, lo mandamos al onboarding
+    if not existing_plan:
+        return redirect(url_for('onboarding'))
+
+    # Si SÍ tiene plan, mostrar dashboard normal
     return render_template('dashboard.html')
 
 @app.route('/logout')
@@ -330,6 +323,22 @@ def save_onboarding():
         session['current_weight'] = float(data.get('current_weight'))
         session['days_per_week'] = data.get('days_per_week')
         session['time_available'] = data.get('time_available')
+
+        # 💾 GUARDAR EL PLAN EN LA BASE DE DATOS
+        conn = sqlite3.connect(DB)
+        c = conn.cursor()
+        c.execute("""
+            INSERT INTO plans (user_id, goal, experience, days, routine)
+            VALUES (?, ?, ?, ?, ?)
+        """, (
+            session['user_id'],
+            plan.get('goal_type', 'Unknown'),
+            plan.get('experience_level', 'Unknown'),
+            len(plan.get('training_days', [])),
+            json.dumps(routine)
+        ))
+        conn.commit()
+        conn.close()
 
         return jsonify({'success': True})
     except Exception as e:
