@@ -7,14 +7,12 @@
 		<link rel="stylesheet" href="/static/css/style.css">
 		<link rel="stylesheet" href="/static/css/main-pages.css">
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-		<script id="routine-data" type="application/json">
-  			{{ routine | tojson | safe }}
-		</script>
+		<script id="user-plan" type="application/json">
+					{{ user_plan | tojson | safe }}
+				</script>
 		<script>
-			const aiRoutine = JSON.parse(document.getElementById('routine-data').textContent);
+			const userPlan = JSON.parse(document.getElementById('user-plan').textContent);
 		</script>
-
-
 		<script src="/static/js/exercises.js" defer></script>
 		<script src="/static/js/calendar.js" defer></script>
 	</head>
@@ -43,7 +41,6 @@
 			<div class="card" id="day-card">
 				<p class="card-title"><i class="fas fa-fire"></i> Fat Burn · Today</p>
 				<p class="card-sub">The fat burn workout. Blasts calories and boosts endurance.</p>
-
 				<h4 class="exercise-title">Exercises</h4>
 
 				<p id="completion-message">
@@ -54,7 +51,7 @@
 		</div>
 
 		<!--Exercise explanation-->
-		<div id="exercise-modal" class="modal">
+		<!-- <div id="exercise-modal" class="modal">
 			<div class="modal-content">
 				<span class="close-modal">&times;</span>
 				<h3 id="modal-exercise-name" class="modal-exercise-title">Exercise Name</h3>
@@ -66,7 +63,7 @@
 				</div>
 				<p id="modal-exercise-description" class="modal-description">Exercise description will go here.</p>
 			</div>
-		</div>
+		</div> -->
 
 		<!-- Nav Menu -->
 		<nav class="bottom-nav">

@@ -9,9 +9,7 @@ import base64
 from flask import jsonify
 from datetime import datetime
 import glob
-from plan_utils import generate_plan
 import json
-from routine_builder import build_routine
 from flask_session import Session
 
 # Load environment variables from .env
@@ -214,27 +212,6 @@ def onboarding():
 
 	return render_template('onboarding.html')
 
-@app.route('/dashboard')
-def dashboard():
-    ensure_user_session()
-
-    if 'user_id' not in session:
-        return redirect(url_for('signin'))
-
-    user_id = session['user_id']
-
-    conn = sqlite3.connect(DB)
-    c = conn.cursor()
-    c.execute("SELECT id FROM plans WHERE user_id = ?", (user_id,))
-    existing_plan = c.fetchone()
-    conn.close()
-
-    if not existing_plan:
-        return redirect(url_for('onboarding'))
-
-    return render_template('dashboard.html')
-
-
 @app.route('/logout')
 def logout():
     session.clear()
@@ -250,33 +227,34 @@ def calendar():
     plan = session.get("fitness_plan")
     if not plan:
         flash("Please complete the onboarding first.")
-        return render_template("calendar.html", routine={}) 
+        return render_template("calendar.html", user_plan={})
 
-    # 🧠 Cargar ejercicios desde tu JSON real
-    exercise_data = json.load(open("static/data/exercises.json"))
-    equipment_available = plan.get("equipment", ["body only"])
+    # Mapeo para days_per_week
+    days_map = {
+        "1-2": 2,
+        "3-4": 4,
+        "5-6": 6
+    }
+    raw_days = plan.get("days_per_week", "3-4")
+    days_count = days_map.get(raw_days, 4)  # default a 4 si no coincide
 
-    routine = build_routine(plan, exercise_data, equipment_available)
+    # Mapeo para time_available
+    time_map = {
+        "10-15": 15,
+        "30-40": 30,
+        "50-60": 60
+    }
+    raw_time = plan.get("time_available", "30-40")
+    time_minutes = time_map.get(raw_time, 30)
 
-    # 📅 Mapea día número a nombre
-    day_map = {
-        1: "Mon", 2: "Tue", 3: "Wed",
-        4: "Thu", 5: "Fri", 6: "Sat", 7: "Sun"
+    user_plan = {
+        "goal": plan.get("goal", "lose_weight"),
+        "days_per_week": days_count,
+        "time_available": time_minutes
     }
 
-    # 🗓️ Solo semana 1 por ahora
-    week_1 = routine[0]
-    routine_for_js = {}
+    return render_template("calendar.html", user_plan=user_plan)
 
-    for day in week_1:
-        day_name = day_map.get(day["day"], "Mon")
-        routine_for_js[day_name] = {
-            "title": f"{day['type']} · Week 1",
-            "desc": f"{day['type']} training ({day['intensity']} intensity, {day['duration']} mins)",
-            "exercises": [ex["name"] for ex in day["exercises"]]
-        }
-
-    return render_template("calendar.html", routine=routine_for_js)
 
 @app.route('/profile')
 def profile():
@@ -345,23 +323,62 @@ def upload_profile_photo():
 
 @app.route('/results')
 def results():
-    plan = session.get("fitness_plan", {})
-    print("👉 PLAN EN RESULTS:", plan)
-    print("👉 GOAL WEIGHT:", session.get("goal_weight"))
-    print("👉 CURRENT WEIGHT:", session.get("current_weight"))
-    print("👉 DAYS:", plan.get("training_days"))
+    data = session.get("fitness_plan", {})
 
-    goal_weight = float(session.get("goal_weight", 0))
-    current_weight = float(session.get("current_weight", 0))
-    weight_loss = round(current_weight - goal_weight, 1)
+    goal = data.get("goal", "get_healthy")
+    speed = data.get("speed", "Balanced pace")
+    current = float(data.get("current_weight", 0))
+    target = float(data.get("goal_weight", 0))
+    unit = session.get("weight_unit", "kg")
+    days = data.get("days_per_week", "3-4")
+    time = data.get("time_available", "30-40")
+
+    weight_diff = abs(current - target)
+    weight_goal = round(weight_diff, 1)
+
+    # Calcular duración
+    if goal == "get_healthy":
+        duration = 75
+    else:
+        if speed == "As fast as possible (healthy)":
+            rate = 1.0 if unit == "kg" else 2.2
+        elif speed == "Slow and steady":
+            rate = 0.2 if unit == "kg" else 0.44
+        else:
+            rate = 0.5 if unit == "kg" else 1.1
+
+        duration = round(weight_diff / rate)
+
+    # Frecuencia de días
+    days_map = {
+        "1-2": 2,
+        "3-4": 4,
+        "5-6": 6
+    }
+    days_count = days_map.get(days, 3)
+
+    # Tiempo diario
+    time_map = {
+        "10-15": 15,
+        "30-40": 30,
+        "50-60": 60
+    }
+    time_minutes = time_map.get(time, 30)
+
+    # Texto objetivo
+    if goal == "get_healthy":
+        goal_text = "Stay Healthy"
+    elif goal == "lose_weight":
+        goal_text = f"Lose {weight_goal} {unit}"
+    else:
+        goal_text = f"Gain {weight_goal} {unit}"
 
     return render_template("results.html",
-        duration=plan.get("estimated_weeks", "?"),
-        weight_goal=weight_loss,
-        days=len(plan.get("training_days", [])),
-        time=plan.get("session_minutes", "?"),
-        weight_unit=session.get("weight_unit", "kg"))
-
+        duration=duration,
+        weight_goal=weight_goal,
+        days=days_count,
+        time=time_minutes,
+        goal=goal_text)
 
 @app.route('/save_onboarding', methods=['POST'])
 def save_onboarding():
@@ -373,68 +390,35 @@ def save_onboarding():
         return jsonify({'success': False, 'error': 'No data received'}), 400
 
     try:
-        plan = generate_plan(data)
-        exercise_data = json.load(open("static/data/exercises.json"))  # ✅ usa tu dataset real aquí
-        routine = build_routine(plan, exercise_data, data.get("equipment", []))
-
-        session['fitness_plan'] = plan
-        session['routine'] = routine
+        # Guardar datos directamente en sesión
+        session['fitness_plan'] = data
         session['weight_unit'] = data.get('weight_unit', 'kg')
         session['goal_weight'] = float(data.get('goal_weight'))
         session['current_weight'] = float(data.get('current_weight'))
-        session['days_per_week'] = data.get('days_per_week')
-        session['time_available'] = data.get('time_available')
-
-        # 💾 GUARDAR EL PLAN EN LA BASE DE DATOS
-        conn = sqlite3.connect(DB)
-        c = conn.cursor()
-        c.execute("""
-						INSERT INTO plans (user_id, goal, experience, days, routine, plan)
-						VALUES (?, ?, ?, ?, ?, ?)
-				""", (
-						session['user_id'],
-						plan.get('goal', 'Unknown'),
-						plan.get('experience', 'Unknown'),
-						len(plan.get('training_days', [])),
-						json.dumps(routine),
-						json.dumps(plan)
-				))
-
-        conn.commit()
-        conn.close()
+        session['needs_onboarding'] = False  # ✅ para que no lo repita
 
         return jsonify({'success': True})
     except Exception as e:
-        print("Plan generation error:", e)
+        print("Error saving onboarding data:", e)
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route("/generate", methods=["POST"])
-def generate():
-    user_data = request.get_json()  # o usa form si lo envías así
-    plan = generate_plan(user_data)
-    
-    # Define exercise_data here or import from a module
-    exercise_data = []  # TODO: Replace with actual exercise data or import from a file/module
-    
-    routine = build_routine(plan, exercise_data, user_data.get("resources", []))
-    session["routine"] = routine  # 💾 Guardamos la rutina en la sesión
+@app.route('/dashboard')
+def dashboard():
+    ensure_user_session()
 
-    return jsonify(success=True)
+    if 'user_id' not in session:
+        return redirect(url_for('signin'))
+
+    if session.get("needs_onboarding", False):
+        return redirect(url_for('onboarding'))
+
+    return render_template('dashboard.html')
+
 # LOGIC ENGINE
 
-def generate_routine(goal, experience, days):
-    base = {
-        'Lose Weight': ['Cardio', 'HIIT', 'Core'],
-        'Gain Muscle': ['Strength', 'Push/Pull', 'Leg Day'],
-        'Tone': ['Pilates', 'Full Body Circuits', 'Yoga']
-    }
-
-    plan = []
-    for i in range(days):
-        day_plan = base.get(goal, ['Full Body'])[i % len(base[goal])]
-        plan.append(f"{day_plan} ({experience})")
-
-    return "\n".join(plan)
+if __name__ == '__main__':
+    app.run(debug=True)
+# LOGIC ENGINE
 
 if __name__ == '__main__':
     app.run(debug=True)
