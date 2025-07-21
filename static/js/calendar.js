@@ -1,10 +1,12 @@
-// Configuración del usuario para este test
+// "lose weight" routine configuration for the user
 const timeAvailable = parseInt(userPlan.time_available); // 15, 30 o 60
 const daysPerWeek = parseInt(userPlan.days_per_week); // 2, 4, 6
 const motivation = userPlan.goal; // "lose_weight", etc.
 
+const normalizedGoal = motivation.replace(/\s+/g, '_').toLowerCase();
 
-// Tu rutina: lose_weight
+
+// routine: lose_weight
 const routine_lose_weight = [
 	{
 		name: "Full Body HIIT",
@@ -225,25 +227,36 @@ const routine_stay_healthy = [
 ];
 
 
-
-// Mapeo para días
+// Mapping for days
 const dayOrder = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const days = document.querySelectorAll(".day-circle");
 const subtitle = document.getElementById("plan-subtitle");
 const dayCard = document.getElementById("day-card");
 const exerciseTitle = document.querySelector(".exercise-title");
 
-// Día de la semana actual
+// current day of the week
 const todayName = dayOrder[new Date().getDay() - 1] || "Sun";
+const todayStr = getTodayStr();
 
-// Generar el plan para esta semana
+function getTodayStr() {
+	const today = new Date();
+	const yyyy = today.getFullYear();
+	const mm = String(today.getMonth() + 1).padStart(2, '0');
+	const dd = String(today.getDate()).padStart(2, '0');
+	return `${yyyy}-${mm}-${dd}`;
+}
+
+// generate a plan for this week
 function generateRoutinePlan(routine, daysPerWeek) {
+	const shuffled = [...routine].sort(() => 0.5 - Math.random());
+	const selectedDays = shuffled.slice(0, daysPerWeek);
+
 	const plan = {};
-	let used = 0;
+	let workoutIndex = 0;
+
 	for (let i = 0; i < 7; i++) {
-		if (used < daysPerWeek) {
-			plan[dayOrder[i]] = routine[i];
-			used++;
+		if (workoutIndex < selectedDays.length) {
+			plan[dayOrder[i]] = selectedDays[workoutIndex++];
 		} else {
 			plan[dayOrder[i]] = null;
 		}
@@ -255,27 +268,44 @@ let selectedRoutine;
 let repsRestText = "";
 let baseDescription = "";
 
-if (motivation === "lose_weight") {
+if (normalizedGoal === "lose_weight") {
 	selectedRoutine = routine_lose_weight;
 	repsRestText = "12 reps · 30s rest";
 	baseDescription = "Full body HIIT and fat-burning workouts to boost your metabolism and burn calories.";
-} else if (motivation === "gain_muscle") {
+} else if (normalizedGoal === "gain_muscle") {
 	selectedRoutine = routine_gain_muscle;
 	repsRestText = "12–15 reps · 45s rest";
 	baseDescription = "Strength-focused training to build muscle and tone your body with progressive bodyweight movements.";
-} else if (motivation === "stay_healthy") {
+} else if (normalizedGoal === "stay_healthy") {
 	selectedRoutine = routine_stay_healthy;
 	repsRestText = "10–12 reps · 20–45s rest";
 	baseDescription = "Balanced movement to maintain health, improve mobility, and stay active without overtraining.";
 } else {
 	selectedRoutine = routine_lose_weight; // Fallback
 	repsRestText = "12 reps · 30s rest";
-	baseDescription = "Full body HIIT and fat-burning workouts to boost your metabolism and burn calories.";
+	baseDescription = "Default plan: Full body HIIT and fat-burning.";
 }
 
 const thisWeek = generateRoutinePlan(selectedRoutine, daysPerWeek);
 
-// Función para renderizar el día
+// Save generated weekly routine to the backend
+fetch("/save-routine", {
+	method: "POST",
+	headers: { "Content-Type": "application/json" },
+	body: JSON.stringify({ routine: thisWeek })
+})
+.then(res => res.json())
+.then(data => {
+	if (!data.success) {
+		console.error("Failed to save routine:", data.error);
+	}
+})
+.catch(err => {
+	console.error("Error saving routine:", err);
+});
+
+
+// fucntion to render the day
 function updateCard(dayName) {
 	days.forEach(d => d.classList.remove("active"));
 
@@ -284,7 +314,7 @@ function updateCard(dayName) {
 
 	const selected = thisWeek[dayName];
 
-	// Limpieza previa
+	// previous clean up
 	const oldExercises = dayCard.querySelectorAll(".exercise-card");
 	oldExercises.forEach(e => e.remove());
 
@@ -295,11 +325,11 @@ function updateCard(dayName) {
 		return;
 	}
 
-	// Título y descripción
+	// title and description
 	dayCard.querySelector(".card-title").innerHTML = `<i class="fas fa-fire"></i> ${selected.name} · ${repsRestText}`;
 	dayCard.querySelector(".card-sub").textContent = baseDescription;
 
-	// Armar secciones según tiempo
+	// create sections according to time
 	const sections = [];
 
 	if (timeAvailable >= 15) {
@@ -317,12 +347,22 @@ function updateCard(dayName) {
 		sections.push(...selected.cooldown);
 	}
 
+	// Load local progress for today
+	const saved = localStorage.getItem(getLocalKey(dayName));
+	const completedSet = saved ? new Set(JSON.parse(saved)) : new Set();
+
 	sections.forEach(ex => {
 		const div = document.createElement("div");
 		div.classList.add("exercise-card");
+
+		const isCompleted = completedSet.has(ex);
+		if (isCompleted) div.classList.add("completed");
+
 		div.innerHTML = `
-			<div class="circle-check check-icon"></div>
-			<span class="exercise-text">${ex}</span>
+			<label>
+				<input type="checkbox" class="check-icon" data-exercise="${ex}" data-day="${dayName}" ${isCompleted ? 'checked' : ''}>
+				<span class="exercise-text">${ex}</span>
+			</label>
 		`;
 		dayCard.appendChild(div);
 	});
@@ -331,11 +371,24 @@ function updateCard(dayName) {
 
 	dayCard.querySelectorAll('.check-icon').forEach(icon => {
 		icon.addEventListener('click', () => {
-			icon.classList.toggle('checked');
-			icon.closest('.exercise-card').classList.toggle('completed');
-			checkIfAllCompleted();
+			const card = icon.closest('.exercise-card');
+			card.classList.toggle('completed');
+			icon.checked = card.classList.contains('completed');
+
+
+			// 1. Save updated progress immediately
+			const completedExercises = getCompletedExercises();
+			saveDayProgress(completedExercises, dayName);
+
+			// 2. Check if everything is completed to show message
+			checkIfAllCompleted(dayName);
 		});
 	});
+
+	function getCompletedExercises() {
+	return [...dayCard.querySelectorAll('.exercise-card.completed .exercise-text')]
+		.map(e => e.textContent.trim());
+}
 
 	checkIfAllCompleted();
 }
@@ -345,23 +398,65 @@ function updateCard(dayName) {
 // 	document.getElementById("exercise-modal").style.display = "none";
 // });
 
-// Navegación entre días
+// Navegation through days
 days.forEach(day => {
 	day.addEventListener("click", () => {
 		updateCard(day.dataset.day);
 	});
 });
 
-updateCard(todayName);
+document.addEventListener("DOMContentLoaded", () => {
+	const progressRaw = document.getElementById("user-progress");
+	if (progressRaw) {
+		window.progressData = JSON.parse(progressRaw.textContent);
+	}
+	updateCard(todayName);  //  Now it knows saved progress before rendering
 
-// Check completo
-function checkIfAllCompleted() {
+//  Restore highlighted days
+	days.forEach(day => {
+		const dayName = day.dataset.day;
+		if (localStorage.getItem(`highlight-${dayName}`) === 'true') {
+			day.innerHTML = '<i class="fas fa-check"></i>';
+			day.style.backgroundColor = 'var(--primary-orange)';
+			day.style.color = 'white';
+		}
+	});
+});
+
+function getLocalKey(date) {
+	return `progress-${date}`;
+}
+
+// Auto-mark from backend progressData if available
+if (progressData && progressData[getTodayStr()] && dayName === todayName) {
+	const savedExercises = progressData[getTodayStr()];
+	dayCard.querySelectorAll('.exercise-card').forEach(card => {
+		const text = card.querySelector('.exercise-text').textContent.trim();
+		if (savedExercises.includes(text)) {
+			card.classList.add('completed');
+			card.querySelector('.check-icon').classList.add('checked');
+		}
+	});
+}
+
+
+function checkIfAllCompleted(dayName) {
 	const allExercises = dayCard.querySelectorAll('.check-icon');
-	const allCompleted = [...allExercises].every(icon => icon.classList.contains('checked'));
+	const allCompleted = [...allExercises].every(icon => icon.checked);
 	const msg = document.getElementById('completion-message');
+
+	const completedExercises = [...dayCard.querySelectorAll('.exercise-card.completed .exercise-text')]
+		.map(e => e.textContent.trim());
+
+	//  Always save current progress to localStorage
+	const selectedDayKey = getLocalKey(dayName);
+	localStorage.setItem(selectedDayKey, JSON.stringify(completedExercises));
 
 	if (allCompleted && allExercises.length > 0) {
 		msg.style.display = 'block';
+
+		//  Save highlight flag for this day
+		localStorage.setItem(`highlight-${dayName}`, 'true');
 
 		const activeDay = document.querySelector('.day-circle.active');
 		if (activeDay) {
@@ -369,6 +464,10 @@ function checkIfAllCompleted() {
 			activeDay.style.backgroundColor = 'var(--primary-orange)';
 			activeDay.style.color = 'white';
 		}
+
+		//  Save to backend
+		saveDayProgress(completedExercises, dayName);
+
 	} else {
 		msg.style.display = 'none';
 
@@ -378,3 +477,35 @@ function checkIfAllCompleted() {
 		}
 	}
 }
+
+function saveDayProgress(completedExercises, dayName) {
+	const today = new Date();
+	const yyyy = today.getFullYear();
+	const mm = String(today.getMonth() + 1).padStart(2, '0');
+	const dd = String(today.getDate()).padStart(2, '0');
+
+	// Assume dayName is "Mon", "Tue", etc.
+	const dayIndex = dayOrder.indexOf(dayName);
+	const selectedDate = new Date(today);
+	selectedDate.setDate(today.getDate() - today.getDay() + 1 + dayIndex);
+
+	const yyyySel = selectedDate.getFullYear();
+	const mmSel = String(selectedDate.getMonth() + 1).padStart(2, '0');
+	const ddSel = String(selectedDate.getDate()).padStart(2, '0');
+	const dateStr = `${yyyySel}-${mmSel}-${ddSel}`;
+
+	fetch("/save-progress", {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({ date: dateStr, completed: completedExercises })
+	})
+	.then(res => res.json())
+	.then(data => {
+		if (!data.success) console.error("Failed to save progress:", data.error);
+	})
+	.catch(err => {
+		console.error("Error sending progress:", err);
+	});
+}
+
+

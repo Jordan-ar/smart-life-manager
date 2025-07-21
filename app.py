@@ -4,13 +4,15 @@ from passlib.hash import bcrypt
 from flask_dance.contrib.google import make_google_blueprint, google
 from dotenv import load_dotenv
 import sqlite3
-import os
 import base64
-from flask import jsonify
-from datetime import datetime
+from flask import jsonify, g
+from datetime import datetime, timedelta
+from db_utils import get_user_progress, get_db
 import glob
 import json
 from flask_session import Session
+
+print("✅ You are running app.py from:", __file__)
 
 # Load environment variables from .env
 load_dotenv()
@@ -67,6 +69,16 @@ def init_db():
                 FOREIGN KEY(user_id) REFERENCES users(id)
             )
         ''')
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS progress (
+                user_id INTEGER,
+                date TEXT,
+                completed_exercises TEXT,
+                PRIMARY KEY (user_id, date),
+                FOREIGN KEY(user_id) REFERENCES users(id)
+            )
+        ''')
+
         conn.commit()
         conn.close()
 init_db()
@@ -90,10 +102,10 @@ def ensure_user_session():
             conn.commit()
             user_id = c.lastrowid
 
-        # 🧠 Guardar user_id
+        # save User_id
         session['user_id'] = user_id
 
-        # 🧠 Cargar plan y rutina
+        # load plan and routine
         c.execute("SELECT routine, plan FROM plans WHERE user_id = ?", (user_id,))
         plan_data = c.fetchone()
         conn.close()
@@ -173,7 +185,7 @@ def signin():
         if user and bcrypt.verify(password, user[1]):
             session['user_id'] = user[0]
 
-            # 🚀 Carga plan y rutina desde DB
+            # load plan and routine from DB
             c.execute("SELECT routine, plan FROM plans WHERE user_id = ?", (user[0],))
             plan_data = c.fetchone()
             conn.close()
@@ -223,27 +235,19 @@ def reset_password():
 
 @app.route("/calendar")
 def calendar():
-    # ⛑️ Verifica si hay plan en sesión
+    if "user_id" not in session:
+        return redirect(url_for("signin"))
+
     plan = session.get("fitness_plan")
     if not plan:
         flash("Please complete the onboarding first.")
         return render_template("calendar.html", user_plan={})
 
-    # Mapeo para days_per_week
-    days_map = {
-        "1-2": 2,
-        "3-4": 4,
-        "5-6": 6
-    }
+    days_map = { "1-2": 2, "3-4": 4, "5-6": 6 }
     raw_days = plan.get("days_per_week", "3-4")
-    days_count = days_map.get(raw_days, 4)  # default a 4 si no coincide
+    days_count = days_map.get(raw_days, 4)
 
-    # Mapeo para time_available
-    time_map = {
-        "10-15": 15,
-        "30-40": 30,
-        "50-60": 60
-    }
+    time_map = { "10-15": 15, "30-40": 30, "50-60": 60 }
     raw_time = plan.get("time_available", "30-40")
     time_minutes = time_map.get(raw_time, 30)
 
@@ -253,8 +257,15 @@ def calendar():
         "time_available": time_minutes
     }
 
-    return render_template("calendar.html", user_plan=user_plan)
+    user_id = session["user_id"]
+    today = datetime.today()
+    start_of_week = today - timedelta(days=today.weekday())
+    end_of_week = start_of_week + timedelta(days=6)
 
+    progress_rows = get_user_progress(user_id, start_of_week.strftime("%Y-%m-%d"), end_of_week.strftime("%Y-%m-%d"))
+    weekly_progress = {row["date"]: row["completed_exercises"] for row in progress_rows}
+
+    return render_template("calendar.html", user_plan=user_plan, progress=weekly_progress)
 
 @app.route('/profile')
 def profile():
@@ -267,23 +278,30 @@ def profile():
     c.execute("SELECT name, email FROM users WHERE id = ?", (session['user_id'],))
     user = c.fetchone()
     conn.close()
-    
+
     user_id = session["user_id"]
     folder_path = os.path.join("static", "uploads")
     pattern = os.path.join(folder_path, f"user_{user_id}_*.png")
     files = glob.glob(pattern)
 
-
-    profile_pic = "/static/assets/profile-picture.jpg"  # default
-
+    profile_pic = "/static/assets/profile-picture.jpg"
     if files:
         latest_file = max(files, key=os.path.getctime)
-        profile_pic = "/" + latest_file.replace("\\", "/")  # Flask needs forward slashes
+        profile_pic = "/" + latest_file.replace("\\", "/")
+
+    fitness_plan = session.get("fitness_plan", {})  # add this
 
     if user:
-        return render_template('profile.html', name=user[0], email=user[1], profile_pic=profile_pic)
+        return render_template(
+            'profile.html',
+            name=user[0],
+            email=user[1],
+            profile_pic=profile_pic,
+            fitness_plan=fitness_plan  # pass to template
+        )
     else:
         return redirect(url_for('signin'))
+
     
 @app.route('/upload-profile-photo', methods=['POST'])
 def upload_profile_photo():
@@ -395,11 +413,32 @@ def save_onboarding():
         session['weight_unit'] = data.get('weight_unit', 'kg')
         session['goal_weight'] = float(data.get('goal_weight'))
         session['current_weight'] = float(data.get('current_weight'))
-        session['needs_onboarding'] = False  # ✅ para que no lo repita
+        session['needs_onboarding'] = False  #  para que no lo repita
 
         return jsonify({'success': True})
     except Exception as e:
         print("Error saving onboarding data:", e)
+        return jsonify({'success': False, 'error': str(e)}), 500
+    
+@app.route('/save-routine', methods=['POST'])
+def save_routine():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+
+    data = request.get_json()
+    try:
+        routine_json = json.dumps(data["routine"])
+        conn = sqlite3.connect(DB)
+        c = conn.cursor()
+        c.execute("UPDATE plans SET routine = ? WHERE user_id = ?", (routine_json, session["user_id"]))
+        conn.commit()
+        conn.close()
+
+        # Update session
+        session["routine"] = data["routine"]
+
+        return jsonify({'success': True})
+    except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/dashboard')
@@ -412,13 +451,182 @@ def dashboard():
     if session.get("needs_onboarding", False):
         return redirect(url_for('onboarding'))
 
-    return render_template('dashboard.html')
+    user_id = session["user_id"]
+    progress = get_user_progress(user_id)  # <-- Use your DB function here
+
+    return render_template('dashboard.html', progress=progress)
+
+
+@app.route('/dashboard-data')
+def dashboard_data():
+    print(" /dashboard-data route triggered")  # Add this line first!
+    print("🪪 Full session:", dict(session))
+    print("📦 user_routine from session:", session.get("routine"))
+
+
+    if 'user_id' not in session:
+        print(" No user_id in session")
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+
+    user_plan = session.get("fitness_plan", {})
+    user_routine = session.get("routine", [])
+    completed = {}
+    progress_rows = get_user_progress(session['user_id'])
+
+    for row in progress_rows:
+        value = row['completed_exercises']
+        if isinstance(value, str):
+            value = json.loads(value)
+        completed[row['date']] = value
+
+    # Extract today's data
+    today = datetime.now().strftime("%Y-%m-%d")
+    completed_today = completed.get(today, [])
+
+    # Determine today's plan based on weekday
+    weekday_map = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    today_name = weekday_map[datetime.now().weekday()]
+    if not isinstance(user_routine, dict):
+        user_routine = {}
+
+    today_routine = user_routine.get(today_name, {})
+
+
+    # Estimate total workout list for today
+    all_today_exercises = []
+
+    if today_routine:
+        if "warmup" in today_routine:
+            all_today_exercises += today_routine["warmup"]
+        if "circuits" in today_routine:
+            for i, circuit in enumerate(today_routine["circuits"]):
+                all_today_exercises += circuit
+        if "cooldown" in today_routine:
+            all_today_exercises += today_routine["cooldown"]
+
+    total_today = len(all_today_exercises)
+    completed_count = len(completed_today)
+
+    # ✅ Debug prints
+    print("📆 Today:", today)
+    print("✅ Completed today from DB:", completed_today)
+    print("📋 Total expected today:", total_today)
+    print("🔥 Completed count:", completed_count)
+
+    # Calories
+    calories_today = completed_count * 8  # Estimate 8 kcal per exercise
+    calories_total = sum(len(v) * 8 for v in completed.values())
+
+    # Weight progress
+    current = float(user_plan.get("current_weight", 0))
+    goal = float(user_plan.get("goal_weight", 0))
+    start = max(current, goal)
+    progress = round(((start - current) / abs(start - goal)) * 100, 1) if start != goal else 100
+
+    # Streak tracking
+    days_raw = user_plan.get("days_per_week", "3-4")
+    days_map = {"1-2": 2, "3-4": 4, "5-6": 6}
+    training_days = days_map.get(days_raw, 4)
+
+    streak_count = sum(
+        1 for k, v in completed.items()
+        if datetime.strptime(k, "%Y-%m-%d").isocalendar()[1] == datetime.now().isocalendar()[1]
+        and len(v) > 0
+    )
+
+    return jsonify({
+        "success": True,
+        "plan": user_plan,
+        "today_exercises": all_today_exercises[:5],
+        "today_completed": completed_today,
+        "total_today": total_today,
+        "calories_today": calories_today,
+        "calories_total": calories_total,
+        "weight_progress": min(100, max(0, progress)),
+        "streak_target": training_days,
+        "streak_count": min(streak_count, training_days),
+        "percentage_today": min(100, int((completed_count / total_today) * 100)) if total_today else 0  
+    })
+
+
+@app.route('/save-progress', methods=['POST'])
+def save_progress():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+
+    data = request.get_json()
+    print("Raw POST JSON:", data)  # ✅ add this line
+
+    date = data.get("date")
+    completed = data.get("completed")
+
+    print("Parsed date:", date)      # ✅ add this line
+    print("Parsed completed:", completed)  # ✅ add this line
+
+    if not date or not isinstance(completed, list):
+        print("Invalid format detected")  # ✅ add this too
+        return jsonify({'success': False, 'error': 'Invalid data format'}), 400
+
+    try:
+        conn = sqlite3.connect(DB)
+        cursor = conn.cursor()
+
+        completed_json = json.dumps(completed)
+
+        cursor.execute("""
+            INSERT INTO progress (user_id, date, completed_exercises)
+            VALUES (?, ?, ?)
+            ON CONFLICT(user_id, date) DO UPDATE SET completed_exercises=excluded.completed_exercises
+        """, (session['user_id'], date, completed_json))
+
+        conn.commit()
+        conn.close()
+
+        return jsonify({'success': True, 'message': 'Progress saved'})
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+
+@app.route("/progress-summary", methods=["GET"])
+def progress_summary():
+    if 'user_id' not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    user_id = session['user_id']
+    conn = sqlite3.connect(DB)
+    c = conn.cursor()
+
+    # Fetch all progress entries for this user
+    c.execute("SELECT date, completed_exercises FROM progress WHERE user_id = ?", (user_id,))
+    rows = c.fetchall()
+    conn.close()
+
+    summary = []
+    for date_str, completed in rows:
+        try:
+            exercises = json.loads(completed)
+        except:
+            exercises = []
+
+        summary.append({
+            "date": date_str,
+            "completed_exercises": exercises
+        })
+
+    return jsonify({"success": True, "progress": summary})
+
+@app.teardown_appcontext
+def close_db(error):
+    db = g.pop('db', None)
+    if db is not None:
+        db.close()
+
 
 # LOGIC ENGINE
 
 if __name__ == '__main__':
-    app.run(debug=True)
-# LOGIC ENGINE
+    app.run(debug=True, use_reloader=False)
 
-if __name__ == '__main__':
-    app.run(debug=True)

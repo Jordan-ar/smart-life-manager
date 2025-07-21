@@ -3,6 +3,9 @@
 	<head>
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<script id="user-progress" type="application/json">
+  					{{ progress | tojson | safe }}
+		</script>
 		<title>Dashboard | Smart Fitness Planner</title>
 		<link rel="stylesheet" href="/static/css/style.css">
 		<link rel="stylesheet" href="/static/css/dashboard.css">
@@ -19,36 +22,30 @@
 				<h1>Let's Workout</h1>
 			</div>
 
-			<!-- Progress of the Routine -->
-			<div class="card workout-progress-card">
-				<div class="group-texts">
-					<h2 class="progress-title">Workout Progress</h2>
-					<p class="progress-subtext">5 exercises left</p>
-				</div>
-				<!-- Donut percentage -->
-				<div class="donut-container">
-					<svg class="donut" viewBox="0 0 36 36">
-						<path class="donut-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-						<path class="donut-ring" stroke-dasharray="40, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-						<text x="18" y="20.5" class="donut-text">40%</text>
-					</svg>
-				</div>
-			</div>
-
-			<!-- Activity summary for the day -->
-			<div class="card">
-				<p class="card-title">Today's Activity</p>
-				<div class="activity-summary">
-					<div class="calories-box">
-						<i class="fas fa-fire icon"></i>
-						<p>400<br><small>calories</small></p>
+			<!-- Workout + Activity Row -->
+			<div class="section-two">
+				<div class="card workout-progress-card">
+					<div class="group-texts">
+						<h2 class="progress-title">Workout Progress</h2>
+						<p class="progress-subtext">5 exercises left</p>
 					</div>
-					<!-- Some exercises for the Day -->
-					<div class="activity-list">
-						<div class="activity-item"><span>Push-ups</span><span>15</span></div>
-						<div class="activity-item"><span>Squats</span><span>20</span></div>
-						<div class="activity-item"><span>Lunges</span><span>15</span></div>
-						<a href="{{ url_for('calendar') }}" class="link small-link">View full routine →</a>
+					<div class="donut-container">
+						<svg class="donut" viewBox="0 0 36 36">
+							<path class="donut-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+							<path class="donut-ring" stroke-dasharray="40, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+							<text x="18" y="20.5" class="donut-text">40%</text>
+						</svg>
+					</div>
+				</div>
+
+				<div class="card activity-card">
+					<p class="card-title">Today's Activity</p>
+					<div class="activity-summary">
+						<div class="calories-box">
+							<i class="fas fa-fire icon"></i>
+							<p>400<br><small>calories</small></p>
+						</div>
+						<div class="activity-list"></div>
 					</div>
 				</div>
 			</div>
@@ -122,8 +119,64 @@
 				<a href="{{ url_for('profile') }}"><i class="fas fa-user"></i></a>
 			</nav>
 
-
 		</div>
+		<script>
+			document.addEventListener("DOMContentLoaded", async () => {
+				try {
+					const res = await fetch("/dashboard-data");
+					const data = await res.json();
 
+					if (!data.success) throw new Error(data.error || "Failed to load data");
+
+					// Workout progress
+					const percent = data.percentage_today;
+					document.querySelector(".donut-ring").setAttribute("stroke-dasharray", `${percent}, 100`);
+					document.querySelector(".donut-text").textContent = `${percent}%`;
+					document.querySelector(".progress-subtext").textContent =
+						data.total_today - data.today_completed.length > 0
+							? `${data.total_today - data.today_completed.length} exercises left`
+							: `Workout complete!`;
+
+					// Today's Activity
+					document.querySelector(".calories-box p").innerHTML = `${data.calories_today}<br><small>calories</small>`;
+
+					const activityList = document.querySelector(".activity-list");
+					const previewExercises = data.today_exercises.slice(0, 5);
+					activityList.innerHTML = "";
+					previewExercises.forEach(ex => {
+						const item = document.createElement("div");
+						item.classList.add("activity-item");
+						item.innerHTML = `<span>${ex}</span><span>✔</span>`;
+						activityList.appendChild(item);
+					});
+					const link = document.createElement("a");
+					link.href = "/calendar";
+					link.className = "link small-link";
+					link.textContent = "View full routine →";
+					activityList.appendChild(link);
+
+					// Calories Burned total
+					document.querySelectorAll(".overall-number")[0].textContent = `${data.calories_total} kcal`;
+					document.querySelectorAll(".donut-ring")[1].setAttribute("stroke-dasharray", `${Math.min(100, data.calories_total / 3000 * 100)}, 100`);
+					document.querySelectorAll(".donut-text")[1].textContent = `${Math.min(100, Math.round(data.calories_total / 3000 * 100))}%`;
+
+					// Weight Progress
+					document.querySelectorAll(".overall-number")[1].textContent = `${data.weight_progress.toFixed(0)}%`;
+					document.querySelectorAll(".donut-ring")[2].setAttribute("stroke-dasharray", `${data.weight_progress}, 100`);
+					document.querySelectorAll(".donut-text")[2].textContent = `${data.weight_progress.toFixed(0)}%`;
+
+					// Streak stars
+					const streakContainer = document.querySelector(".streak-stars");
+					streakContainer.innerHTML = "";
+					for (let i = 0; i < data.streak_target; i++) {
+						const star = document.createElement("i");
+						star.className = i < data.streak_count ? "fas fa-star filled" : "far fa-star";
+						streakContainer.appendChild(star);
+					}
+				} catch (err) {
+					console.error("Dashboard error:", err);
+				}
+			});
+		</script>
 	</body>
 </html>
