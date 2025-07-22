@@ -12,7 +12,7 @@ import glob
 import json
 from flask_session import Session
 
-print("✅ You are running app.py from:", __file__)
+print(" You are running app.py from:", __file__)
 
 # Load environment variables from .env
 load_dotenv()
