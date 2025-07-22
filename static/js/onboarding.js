@@ -130,15 +130,12 @@ document.addEventListener("DOMContentLoaded", () => {
 		toggleUnit(currentUnit);
 	}
 
-	// Inicializar onboarding
 	document.getElementById("start-btn").addEventListener("click", () => showStep(1));
 
-	// Manejo de pasos
 	handleOptionStep({ stepId: "question-step-1", nextBtnId: "next-btn", resultKey: "Motivation", nextStepIndex: 2 });
 	handleOptionStep({ stepId: "question-step-2", nextBtnId: "next-btn-2", resultKey: "Gender", nextStepIndex: 3, backBtnId: "back-btn-2", backStepIndex: 1 });
 	handleInputStep({ inputId: "age-input", nextBtnId: "next-btn-3", resultKey: "Age", min: 13, max: 120, nextStepIndex: 4, backBtnId: "back-btn-3", backStepIndex: 2 });
 
-	// Altura
 	handleToggleUnitInputStep({
 		toggleId: "height-toggle",
 		unitBtnsSelector: ".toggle-btn",
@@ -165,7 +162,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		backStepIndex: 3
 	});
 
-	// Peso actual
+
 	handleToggleUnitInputStep({
 		toggleId: "weight-toggle",
 		unitBtnsSelector: ".toggle-btn",
@@ -191,7 +188,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		backStepIndex: 4
 	});
 
-	// Peso meta
+
 	handleToggleUnitInputStep({
 		toggleId: "goal-weight-toggle",
 		unitBtnsSelector: ".toggle-btn",
@@ -221,10 +218,10 @@ document.addEventListener("DOMContentLoaded", () => {
 	handleOptionStep({ stepId: "question-step-8", nextBtnId: "next-btn-8", resultKey: "Training Days", nextStepIndex: 9, backBtnId: "back-btn-8", backStepIndex: 7 });
 	handleOptionStep({ stepId: "question-step-9", nextBtnId: "next-btn-9", resultKey: "Daily Time", nextStepIndex: 10, backBtnId: "back-btn-9", backStepIndex: 8 });
 
-	// PASO FINAL: del paso 10 al final-step
+
 	handleOptionStep({ stepId: "question-step-10", nextBtnId: "next-btn-10", resultKey: "Activity Level", nextStepIndex: "final-step", backBtnId: "back-btn-10", backStepIndex: 9 });
 
-	// BOTÓN FINAL: Enviar datos al backend
+
 	document.getElementById("next-btn-final").addEventListener("click", () => {
 		const formatted = {
 			goal: answers["Motivation"],

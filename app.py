@@ -37,8 +37,8 @@ google_bp = make_google_blueprint(
         "https://www.googleapis.com/auth/userinfo.email",
         "https://www.googleapis.com/auth/userinfo.profile"
     ],
-    redirect_to="dashboard",
-    reprompt_consent=True 
+    redirect_to="google_login_redirect",
+    reprompt_consent=True
 )
 
 app.register_blueprint(google_bp, url_prefix="/login")
@@ -66,6 +66,7 @@ def init_db():
                 experience TEXT,
                 days INTEGER,
                 routine TEXT,
+                plan TEXT,
                 FOREIGN KEY(user_id) REFERENCES users(id)
             )
         ''')
@@ -102,24 +103,43 @@ def ensure_user_session():
             conn.commit()
             user_id = c.lastrowid
 
-        # save User_id
+        # Save user_id
         session['user_id'] = user_id
 
-        # load plan and routine
+        # Load plan and routine
         c.execute("SELECT routine, plan FROM plans WHERE user_id = ?", (user_id,))
         plan_data = c.fetchone()
         conn.close()
 
-        if plan_data:
+        if plan_data and plan_data[1]:
             try:
-                session["routine"] = json.loads(plan_data[0])
+                session["routine"] = json.loads(plan_data[0]) if plan_data[0] else {}
                 session["fitness_plan"] = json.loads(plan_data[1])
+                session["needs_onboarding"] = False
             except:
                 session["routine"] = []
                 session["fitness_plan"] = {}
-
+                session["needs_onboarding"] = True
+        else:
+            session["routine"] = []
+            session["fitness_plan"] = {}
+            session["needs_onboarding"] = True
 
 # ROUTES
+
+@app.route("/google-login-redirect")
+def google_login_redirect():
+    if not google.authorized:
+        return redirect(url_for("start_google_login"))
+
+    ensure_user_session()
+
+    if session.get("needs_onboarding", False) or not session.get("fitness_plan"):
+        flash("Welcome! Let's get started with your plan.")
+        return redirect(url_for("onboarding"))
+    else:
+        return redirect(url_for("dashboard"))
+
 
 @app.route("/start-google-login")
 def start_google_login():
@@ -158,7 +178,7 @@ def signup():
 
         conn.close()
         session['user_id'] = user_id  
-        session['needs_onboarding'] = True  # 🪄 Marca que aún no ha hecho onboarding
+        session['needs_onboarding'] = True 
         flash('Account created successfully!')
         return redirect(url_for('onboarding'))
 
@@ -210,19 +230,13 @@ def signin():
 
 @app.route('/onboarding')
 def onboarding():
-	if 'user_id' not in session:
-		return redirect(url_for('signin'))
+    if 'user_id' not in session:
+        return redirect(url_for('signin'))
 
-	conn = sqlite3.connect(DB)
-	c = conn.cursor()
-	c.execute("SELECT * FROM plans WHERE user_id = ?", (session['user_id'],))
-	existing_plan = c.fetchone()
-	conn.close()
+    if not session.get("needs_onboarding", True):
+        return redirect(url_for('dashboard'))
 
-	if existing_plan:
-		return redirect(url_for('dashboard'))
-
-	return render_template('onboarding.html')
+    return render_template('onboarding.html')
 
 @app.route('/logout')
 def logout():
@@ -241,7 +255,7 @@ def calendar():
     plan = session.get("fitness_plan")
     if not plan:
         flash("Please complete the onboarding first.")
-        return render_template("calendar.html", user_plan={})
+        return render_template("calendar.html", user_plan={}, progress={})
 
     days_map = { "1-2": 2, "3-4": 4, "5-6": 6 }
     raw_days = plan.get("days_per_week", "3-4")
@@ -289,7 +303,7 @@ def profile():
         latest_file = max(files, key=os.path.getctime)
         profile_pic = "/" + latest_file.replace("\\", "/")
 
-    fitness_plan = session.get("fitness_plan", {})  # add this
+    fitness_plan = session.get("fitness_plan", {}) 
 
     if user:
         return render_template(
@@ -297,7 +311,7 @@ def profile():
             name=user[0],
             email=user[1],
             profile_pic=profile_pic,
-            fitness_plan=fitness_plan  # pass to template
+            fitness_plan=fitness_plan 
         )
     else:
         return redirect(url_for('signin'))
@@ -354,7 +368,6 @@ def results():
     weight_diff = abs(current - target)
     weight_goal = round(weight_diff, 1)
 
-    # Calcular duración
     if goal == "get_healthy":
         duration = 75
     else:
@@ -367,7 +380,7 @@ def results():
 
         duration = round(weight_diff / rate)
 
-    # Frecuencia de días
+    
     days_map = {
         "1-2": 2,
         "3-4": 4,
@@ -375,7 +388,7 @@ def results():
     }
     days_count = days_map.get(days, 3)
 
-    # Tiempo diario
+  
     time_map = {
         "10-15": 15,
         "30-40": 30,
@@ -383,7 +396,7 @@ def results():
     }
     time_minutes = time_map.get(time, 30)
 
-    # Texto objetivo
+  
     if goal == "get_healthy":
         goal_text = "Stay Healthy"
     elif goal == "lose_weight":
@@ -408,18 +421,37 @@ def save_onboarding():
         return jsonify({'success': False, 'error': 'No data received'}), 400
 
     try:
-        # Guardar datos directamente en sesión
+        
         session['fitness_plan'] = data
         session['weight_unit'] = data.get('weight_unit', 'kg')
-        session['goal_weight'] = float(data.get('goal_weight'))
-        session['current_weight'] = float(data.get('current_weight'))
-        session['needs_onboarding'] = False  #  para que no lo repita
+        session['goal_weight'] = float(data.get('goal_weight', 0))
+        session['current_weight'] = float(data.get('current_weight', 0))
+        session['needs_onboarding'] = False
+
+        
+        conn = sqlite3.connect(DB)
+        c = conn.cursor()
+
+        plan_json = json.dumps(data)
+
+        
+        c.execute("SELECT id FROM plans WHERE user_id = ?", (session['user_id'],))
+        existing = c.fetchone()
+
+        if existing:
+            c.execute("UPDATE plans SET plan = ? WHERE user_id = ?", (plan_json, session['user_id']))
+        else:
+            c.execute("INSERT INTO plans (user_id, plan) VALUES (?, ?)", (session['user_id'], plan_json))
+
+        conn.commit()
+        conn.close()
 
         return jsonify({'success': True})
+    
     except Exception as e:
         print("Error saving onboarding data:", e)
         return jsonify({'success': False, 'error': str(e)}), 500
-    
+
 @app.route('/save-routine', methods=['POST'])
 def save_routine():
     if 'user_id' not in session:
@@ -449,17 +481,16 @@ def dashboard():
         return redirect(url_for('signin'))
 
     if session.get("needs_onboarding", False):
+        flash("Please complete the onboarding first.")
         return redirect(url_for('onboarding'))
 
     user_id = session["user_id"]
-    progress = get_user_progress(user_id)  # <-- Use your DB function here
-
+    progress = get_user_progress(user_id)
     return render_template('dashboard.html', progress=progress)
-
 
 @app.route('/dashboard-data')
 def dashboard_data():
-    print(" /dashboard-data route triggered")  # Add this line first!
+    print(" /dashboard-data route triggered")  
     print("🪪 Full session:", dict(session))
     print("📦 user_routine from session:", session.get("routine"))
 
@@ -507,11 +538,11 @@ def dashboard_data():
     total_today = len(all_today_exercises)
     completed_count = len(completed_today)
 
-    # ✅ Debug prints
-    print("📆 Today:", today)
-    print("✅ Completed today from DB:", completed_today)
-    print("📋 Total expected today:", total_today)
-    print("🔥 Completed count:", completed_count)
+    # Debug prints
+    print("Today:", today)
+    print("Completed today from DB:", completed_today)
+    print("Total expected today:", total_today)
+    print("Completed count:", completed_count)
 
     # Calories
     calories_today = completed_count * 8  # Estimate 8 kcal per exercise
@@ -555,16 +586,16 @@ def save_progress():
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
 
     data = request.get_json()
-    print("Raw POST JSON:", data)  # ✅ add this line
+    print("Raw POST JSON:", data) 
 
     date = data.get("date")
     completed = data.get("completed")
 
-    print("Parsed date:", date)      # ✅ add this line
-    print("Parsed completed:", completed)  # ✅ add this line
+    print("Parsed date:", date)     
+    print("Parsed completed:", completed) 
 
     if not date or not isinstance(completed, list):
-        print("Invalid format detected")  # ✅ add this too
+        print("Invalid format detected")  
         return jsonify({'success': False, 'error': 'Invalid data format'}), 400
 
     try:
