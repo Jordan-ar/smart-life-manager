@@ -7,6 +7,10 @@
 		<link rel="stylesheet" href="/static/css/style.css">
 		<link rel="stylesheet" href="/static/css/auth.css">
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+		<script>
+			const existingData = {{ data| tojson | safe }};
+			const editMode = {{ edit_mode| tojson | safe }};
+		</script>
 		<script src="/static/js/onboarding.js" defer></script>
 	</head>
 
@@ -18,8 +22,8 @@
 
 			<!-- Step 0: Welcome -->
 			<div id="welcome-screen" class="welcome-card">
-				<h1>Let's create a fitness plan designed just for you!</h1>
-				<button id="start-btn" class="btn primary full-btn">Start</button>
+				<h1>{{ 'Update your preferences' if edit_mode else "Let's create a fitness plan designed just for you!" }}</h1>
+				<button id="start-btn" class="btn primary full-btn">{{ 'Edit Plan' if edit_mode else 'Start' }}</button>
 			</div>
 
 			<!-- Step 1: Motivation -->
@@ -212,8 +216,8 @@
 			</div>
 			<!-- Final Step: Create Plan -->
 			<div id="final-step" class="welcome-card hidden">
-				<h1>You're all set!</h1>
-				<p>Click below to generate your custom plan</p>
+				<h1>{{ 'Preferences updated!' if edit_mode else "You're all set!" }}</h1>
+				<p>{{ 'Click below to save your updated plan' if edit_mode else 'Click below to generate your custom plan' }}</p>
 
 				<!-- Hidden inputs passed to backend -->
 				<input type="hidden" name="goal" id="goal-input">
@@ -227,10 +231,11 @@
 
 				<div class="step-buttons">
 					<button id="back-btn-final" class="btn secondary full-btn" type="button">Back</button>
-					<button id="next-btn-final" type="button" class="btn primary full-btn">Create Plan</button>
+					<button id="next-btn-final" type="button" class="btn primary full-btn">
+						{{ 'Save Changes' if edit_mode else 'Create Plan' }}
+					</button>
 				</div>
 			</div>
-
 		</div>
 	</body>
 </html>

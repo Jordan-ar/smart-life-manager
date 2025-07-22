@@ -260,4 +260,61 @@ document.addEventListener("DOMContentLoaded", () => {
 				alert("Something went wrong. Try again!");
 			});
 	});
+
+	// 🪄 Precargar respuestas si estamos editando
+	if (editMode && existingData) {
+		answers["Motivation"] = existingData.goal;
+		answers["Gender"] = existingData.gender;
+		answers["Age"] = existingData.age;
+		answers["Height"] = existingData.height_cm || (existingData.height_ft * 12 + existingData.height_in);
+		answers["Current Weight"] = existingData.current_weight;
+		answers["Goal Weight"] = existingData.goal_weight;
+		answers["Goal Speed"] = existingData.speed;
+		answers["Training Days"] = existingData.days_per_week;
+		answers["Daily Time"] = existingData.time_available;
+		answers["Activity Level"] = existingData.activity_level;
+
+		// Activar visualmente los botones seleccionados (espera 100ms por si el DOM aún carga)
+		setTimeout(() => {
+			Object.entries(answers).forEach(([key, value]) => {
+				const matchingBtn = document.querySelector(`.option-btn[data-value='${value}']`);
+				if (matchingBtn) {
+					matchingBtn.classList.add("selected");
+					const stepCard = matchingBtn.closest(".welcome-card");
+					const nextBtn = stepCard.querySelector(".btn.primary");
+					if (nextBtn) nextBtn.disabled = false;
+				}
+			});
+
+			// Edad
+			if (answers["Age"]) {
+				const ageInput = document.getElementById("age-input");
+				ageInput.value = answers["Age"];
+			}
+
+			// Altura
+			if (existingData.height_unit === "imperial") {
+				document.querySelector("[data-unit='imperial']").click();
+				document.getElementById("feet-input").value = existingData.height_ft;
+				document.getElementById("inches-input").value = existingData.height_in;
+			} else {
+				document.querySelector("[data-unit='metric']").click();
+				document.getElementById("cm-input").value = existingData.height_cm;
+			}
+
+			// Peso actual y meta
+			if (existingData.weight_unit === "lbs") {
+				document.querySelector("#weight-toggle [data-unit='lbs']").click();
+				document.getElementById("weight-input-lbs").value = existingData.current_weight;
+				document.querySelector("#goal-weight-toggle [data-unit='lbs']").click();
+				document.getElementById("goal-weight-input-lbs").value = existingData.goal_weight;
+			} else {
+				document.querySelector("#weight-toggle [data-unit='kg']").click();
+				document.getElementById("weight-input-kg").value = existingData.current_weight;
+				document.querySelector("#goal-weight-toggle [data-unit='kg']").click();
+				document.getElementById("goal-weight-input-kg").value = existingData.goal_weight;
+			}
+		}, 100);
+	}
+
 });

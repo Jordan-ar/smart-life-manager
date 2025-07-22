@@ -233,10 +233,14 @@ def onboarding():
     if 'user_id' not in session:
         return redirect(url_for('signin'))
 
-    if not session.get("needs_onboarding", True):
-        return redirect(url_for('dashboard'))
+    edit_mode = request.args.get("edit", "false") == "true"
 
-    return render_template('onboarding.html')
+    if not session.get("needs_onboarding", True) and not edit_mode:
+        return redirect(url_for('dashboard'))
+    
+    existing_data = session.get("fitness_plan", {})
+
+    return render_template('onboarding.html', data=existing_data, edit_mode=edit_mode)
 
 @app.route('/logout')
 def logout():

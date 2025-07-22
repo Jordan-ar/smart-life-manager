@@ -43,7 +43,7 @@
 					Days per week: {{ fitness_plan.days_per_week or 'Not set' }}<br>
 					Time per day: {{ fitness_plan.time_available or 'Not set' }} min
 				</p>
-				<button class="btn full-btn primary">Edit Preferences</button>
+				<a href="{{ url_for('onboarding', edit='true') }}" class="btn full-btn primary">Edit Preferences</a>
 			</div>
 
 			<div class="card">
