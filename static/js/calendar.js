@@ -102,7 +102,7 @@ const subtitle = document.getElementById("plan-subtitle");
 const dayCard = document.getElementById("day-card");
 const exerciseTitle = document.querySelector(".exercise-title");
 
-function updateCard(dayName) {
+async function updateCard(dayName) {
 	days.forEach(d => d.classList.remove("active"));
 	const selectedBtn = [...days].find(d => d.dataset.day === dayName);
 	if (selectedBtn) selectedBtn.classList.add("active");
@@ -128,73 +128,90 @@ function updateCard(dayName) {
 	const subtitleEl = dayCard.querySelector(".card-sub");
 	subtitleEl.textContent = baseDescription;
 
-
-	// Progreso local
-	const saved = localStorage.getItem(`progress-${dayName}`);
-	const completedSet = saved ? new Set(JSON.parse(saved)) : new Set();
-
-	function createCard(ex, dayName, completedSet) {
+	// 👉 Función para crear cada card de ejercicio
+	function createCard(ex, date, checked) {
 		const div = document.createElement("div");
 		div.classList.add("exercise-card");
-		if (completedSet.has(ex)) div.classList.add("completed");
+		if (checked) div.classList.add("completed");
 
 		div.innerHTML = `
 			<label>
-				<input type="checkbox" class="check-icon" data-exercise="${ex}" data-day="${dayName}" ${completedSet.has(ex) ? 'checked' : ''}>
+				<input type="checkbox" class="check-icon" data-exercise="${ex}" data-date="${date}" ${checked ? 'checked' : ''}>
 				<span class="exercise-text">${ex}</span>
 			</label>
 		`;
 		return div;
 	}
 
-	// Render warm-up
-	warmup.forEach(ex => warmupContainer.appendChild(createCard(ex, dayName, completedSet)));
+	// 👉 Función para pedir al backend si ese ejercicio ya fue completado
+	async function fetchCompletion(exercise, date) {
+		const res = await fetch(`/get-progress?date=${date}&exercise_name=${encodeURIComponent(exercise)}`);
+		const data = await res.json();
+		return data.completed;
+	}
 
-	// Render circuit (repeat based on time)
+	// 🧡 Render warm-up
+	for (const ex of warmup) {
+		const isDone = await fetchCompletion(ex, dayName);
+		warmupContainer.appendChild(createCard(ex, dayName, isDone));
+	}
+
+	// 🔥 Render circuito según reps
 	const reps = timeAvailable === 15 ? 1 : timeAvailable === 30 ? 2 : 5;
 	for (let i = 0; i < reps; i++) {
-		selected.circuit.forEach(ex => circuitContainer.appendChild(createCard(ex, dayName, completedSet)));
+		for (const ex of selected.circuit) {
+			const isDone = await fetchCompletion(ex, dayName);
+			circuitContainer.appendChild(createCard(ex, dayName, isDone));
+		}
 	}
 
-	// Render cooldown (only if 30 or 60)
+	// 🌈 Render cool down si aplica
 	if (timeAvailable >= 30) {
-		cooldown.forEach(ex => cooldownContainer.appendChild(createCard(ex, dayName, completedSet)));
+		for (const ex of cooldown) {
+			const isDone = await fetchCompletion(ex, dayName);
+			cooldownContainer.appendChild(createCard(ex, dayName, isDone));
+		}
 	}
 
-	// --- Función para manejar tabs ---
+	// 🧠 Tabs
 	document.querySelectorAll(".tab-button").forEach(btn => {
 		btn.addEventListener("click", () => {
-			// Quitar clase activa de todos
 			document.querySelectorAll(".tab-button").forEach(b => b.classList.remove("active"));
 			document.querySelectorAll(".exercise-tab").forEach(tab => tab.classList.add("hidden"));
-
-			// Activar el tab seleccionado
 			btn.classList.add("active");
 			const tabTarget = btn.getAttribute("data-target");
 			document.getElementById(tabTarget).classList.remove("hidden");
 
-			// Cambiar subtítulo según el tab
+			// Cambiar subtítulo
 			if (tabTarget === "circuit-section") {
 				subtitleEl.textContent = "Each exercise lasts 2 minutes with 30 seconds of rest.";
 			} else {
 				subtitleEl.textContent = baseDescription;
 			}
 		});
-
 	});
 
-	// Listeners para checkboxes
+	// ✨ Listeners de los checkboxes
 	document.querySelectorAll('.check-icon').forEach(icon => {
-		icon.addEventListener('click', () => {
+		icon.addEventListener('change', async () => {
 			const card = icon.closest('.exercise-card');
-			card.classList.toggle('completed');
-			icon.checked = card.classList.contains('completed');
-			const completed = [...document.querySelectorAll('.exercise-card.completed .exercise-text')].map(e => e.textContent.trim());
-			localStorage.setItem(`progress-${dayName}`, JSON.stringify(completed));
-			checkIfAllCompleted(dayName);
+			const checked = icon.checked;
+			card.classList.toggle('completed', checked);
+
+			const date = icon.dataset.date;
+			const exercise = icon.dataset.exercise;
+
+			await fetch('/set-progress', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ date, exercise_name: exercise, completed: checked })
+			});
+
+			checkIfAllCompleted(date);
 		});
 	});
 
+	// Verifica si todos los ejercicios están completados y actualiza el mensajito
 	checkIfAllCompleted(dayName);
 }
 
