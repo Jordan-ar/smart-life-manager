@@ -60,9 +60,6 @@ def init_db():
         CREATE TABLE IF NOT EXISTS plans (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER,
-            goal TEXT,
-            experience TEXT,
-            days INTEGER,
             routine TEXT,
             plan TEXT,
             FOREIGN KEY(user_id) REFERENCES users(id)
