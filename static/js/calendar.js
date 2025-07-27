@@ -156,16 +156,28 @@ const todayName = dayOrder[new Date().getDay() - 1] || "Sun";
 // --- Asignación cíclica de rutina semanal ---
 function generateRoutinePlan(routine, daysPerWeek) {
 	const plan = {};
-	let index = 0;
-	for (let i = 0; i < 7; i++) {
-		if ((i % Math.floor(7 / daysPerWeek) === 0) && index < routine.length) {
-			plan[dayOrder[i]] = routine[index++];
+	const workoutDays = [];
+
+	// 👉 Elegimos días de la semana bien distribuidos según cantidad deseada
+	const intervals = Math.floor(7 / daysPerWeek);
+	let dayIndex = 0;
+	for (let i = 0; i < daysPerWeek; i++) {
+		workoutDays.push(dayOrder[dayIndex]);
+		dayIndex += intervals;
+	}
+
+	let routineIndex = 0;
+	for (const day of dayOrder) {
+		if (workoutDays.includes(day)) {
+			plan[day] = routine[routineIndex++];
 		} else {
-			plan[dayOrder[i]] = null;
+			plan[day] = null;
 		}
 	}
+
 	return plan;
 }
+
 
 const thisWeek = generateRoutinePlan(selectedRoutine, daysPerWeek);
 
