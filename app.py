@@ -1,18 +1,22 @@
+# SmartFit App - Flask Application
+# This application provides a fitness management system with user authentication, Google OAuth, and a personalized fitness
+
+# Standard libraries
 import os
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, g
-from passlib.hash import bcrypt
-from flask_dance.contrib.google import make_google_blueprint, google
-from dotenv import load_dotenv
-import sqlite3
-import base64
-from datetime import datetime, timedelta
-import glob
 import json
+import glob
+import base64
+import sqlite3
+from datetime import datetime, timedelta
+
+# Third-party libraries
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, g
 from flask_session import Session
+from flask_dance.contrib.google import make_google_blueprint, google
+from passlib.hash import bcrypt
+from dotenv import load_dotenv
 
-print(" You are running app.py from:", __file__)
-
-# Load environment variables from .env
+# App configuration start.
 load_dotenv()
 
 app = Flask(__name__)
@@ -38,14 +42,13 @@ google_bp = make_google_blueprint(
 
 app.register_blueprint(google_bp, url_prefix="/login")
 
+# Database setup
 DB = 'instance/smartfit.db'
-
-
 def init_db():
     conn = sqlite3.connect(DB)
     c = conn.cursor()
 
-    # Crear tabla de usuarios
+    # Create users table
     c.execute('''
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -55,7 +58,7 @@ def init_db():
         )
     ''')
 
-    # Crear tabla de planes
+    # Create plans table
     c.execute('''
         CREATE TABLE IF NOT EXISTS plans (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -66,7 +69,7 @@ def init_db():
         )
     ''')
 
-    # Crear tabla de progreso corregida
+    # Create progress table
     c.execute('''
         CREATE TABLE IF NOT EXISTS progress (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -83,6 +86,7 @@ def init_db():
     conn.close()
 init_db()
 
+# Function to ensure user session is set up
 def ensure_user_session():
     if google.authorized and 'user_id' not in session:
         resp = google.get("/oauth2/v1/userinfo")
@@ -122,8 +126,10 @@ def ensure_user_session():
             session["fitness_plan"] = {}
             session["needs_onboarding"] = True
 
-# ROUTES
 
+# ================== ROUTES ==================
+
+# Redirect route for Google login
 @app.route("/google-login-redirect")
 def google_login_redirect():
     if not google.authorized:
@@ -137,16 +143,19 @@ def google_login_redirect():
     else:
         return redirect(url_for("calendar"))
 
+# Route to start Google login with prompt for account selection
 @app.route("/start-google-login")
 def start_google_login():
     return redirect(url_for("google.login") + "?prompt=select_account")
 
+# Home route
 @app.route('/')
 def home():
     if 'user_id' in session:
         return redirect(url_for('calendar'))
     return render_template('index.html')
 
+# Sign up route
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
@@ -180,12 +189,7 @@ def signup():
 
     return render_template('signup.html')
 
-@app.route('/onboarding_success')
-def onboarding_success():
-    if 'user_id' not in session:
-        return redirect(url_for('signin'))
-    return render_template('onboarding_success.html')
-
+# Sign in route
 @app.route('/signin', methods=['GET', 'POST'])
 def signin():  
     if request.method == 'POST':
@@ -221,6 +225,7 @@ def signin():
 
     return render_template('signin.html')
 
+# Onboarding route
 @app.route('/onboarding')
 def onboarding():
     if 'user_id' not in session:
@@ -235,15 +240,18 @@ def onboarding():
 
     return render_template('onboarding.html', data=existing_data, edit_mode=edit_mode)
 
+# Logout route
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('signin'))
 
+# Reset password route
 @app.route('/reset-password')
 def reset_password():
     return render_template('reset-password.html')
 
+# Calendar route
 @app.route("/calendar")
 def calendar():
     if "user_id" not in session:
@@ -253,7 +261,6 @@ def calendar():
     if not plan:
         flash("Please complete the onboarding first.")
         return render_template("calendar.html", user_plan={}, progress={}, user_id=session["user_id"])
-
 
     days_map = { "1-2": 2, "3-4": 4, "5-6": 6 }
     raw_days = plan.get("days_per_week", "3-4")
@@ -284,14 +291,13 @@ def calendar():
     rows = c.fetchall()
     conn.close()
 
-    # Usamos clave compuesta para que calendar.html sepa qué ejercicio fue completado por día
     weekly_progress = {
         f"{row['date']}|{row['exercise_name']}": bool(row['completed']) for row in rows
     }
 
     return render_template("calendar.html", user_plan=user_plan, progress=weekly_progress, user_id=user_id)
 
-
+# Profile route
 @app.route('/profile')
 def profile():
     ensure_user_session()
@@ -327,6 +333,7 @@ def profile():
     else:
         return redirect(url_for('signin'))
 
+# Upload profile photo route
 @app.route('/upload-profile-photo', methods=['POST'])
 def upload_profile_photo():
     if 'user_id' not in session:
@@ -358,6 +365,7 @@ def upload_profile_photo():
         print("Upload error:", e)
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# Results route
 @app.route('/results')
 def results():
     data = session.get("fitness_plan", {})
@@ -405,6 +413,7 @@ def results():
         time=time_minutes,
         goal=goal_text)
 
+# Save onboarding data route
 @app.route('/save_onboarding', methods=['POST'])
 def save_onboarding():
     if 'user_id' not in session:
@@ -442,6 +451,7 @@ def save_onboarding():
         print("Error saving onboarding data:", e)
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# Save routine route
 @app.route('/save-routine', methods=['POST'])
 def save_routine():
     if 'user_id' not in session:
@@ -462,64 +472,7 @@ def save_routine():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/save-progress', methods=['POST'])
-def save_progress():
-    if 'user_id' not in session:
-        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-
-    data = request.get_json()
-    date = data.get("date")
-    completed = data.get("completed")
-
-    if not date or not isinstance(completed, list):
-        return jsonify({'success': False, 'error': 'Invalid data format'}), 400
-
-    try:
-        conn = sqlite3.connect(DB)
-        cursor = conn.cursor()
-
-        completed_json = json.dumps(completed)
-
-        cursor.execute("""
-            INSERT INTO progress (user_id, date, completed_exercises)
-            VALUES (?, ?, ?)
-            ON CONFLICT(user_id, date) DO UPDATE SET completed_exercises=excluded.completed_exercises
-        """, (session['user_id'], date, completed_json))
-
-        conn.commit()
-        conn.close()
-
-        return jsonify({'success': True, 'message': 'Progress saved'})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-@app.route("/progress-summary", methods=["GET"])
-def progress_summary():
-    if 'user_id' not in session:
-        return jsonify({"error": "Unauthorized"}), 401
-
-    user_id = session['user_id']
-    conn = sqlite3.connect(DB)
-    c = conn.cursor()
-
-    c.execute("SELECT date, completed_exercises FROM progress WHERE user_id = ?", (user_id,))
-    rows = c.fetchall()
-    conn.close()
-
-    summary = []
-    for date_str, completed in rows:
-        try:
-            exercises = json.loads(completed)
-        except:
-            exercises = []
-
-        summary.append({
-            "date": date_str,
-            "completed_exercises": exercises
-        })
-
-    return jsonify({"success": True, "progress": summary})
-
+# Get progress route
 @app.route("/get-progress")
 def get_progress():
     if 'user_id' not in session:
@@ -543,6 +496,7 @@ def get_progress():
 
     return jsonify({"completed": bool(row[0]) if row else False})
 
+#set progress route
 @app.route("/set-progress", methods=["POST"])
 def set_progress():
     if 'user_id' not in session:
@@ -571,11 +525,13 @@ def set_progress():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
+# Close database connection after each request
 @app.teardown_appcontext
 def close_db(error):
     db = g.pop('db', None)
     if db is not None:
         db.close()
 
+# Error handler for 404
 if __name__ == '__main__':
     app.run(debug=True, use_reloader=False)

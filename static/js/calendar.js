@@ -310,7 +310,7 @@ async function updateCard(dayName) {
 			const date = icon.dataset.date;
 			const exercise = icon.dataset.exercise;
 
-			await fetch('/set-progress', {
+			await fetch('set-progress', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ date, exercise_name: exercise, completed: checked })
