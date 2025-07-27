@@ -34,15 +34,6 @@
 	margin: -1px;
 }
 
-.hidden {
-	display: none !important;
-	visibility: hidden;
-	opacity: 0;
-	height: 0;
-	width: 0;
-	overflow: hidden;
-}
-
 .hint {
 	font-size: 0.5rem;
 	color: #888;

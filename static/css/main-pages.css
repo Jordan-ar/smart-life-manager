@@ -85,29 +85,55 @@
 	flex-grow: 1;
 }
 
+/* Oculta el input real */
+.check-icon {
+	opacity: 0;
+	position: absolute;
+	pointer-events: none;
+}
+
+/* Wrapper del check personalizado */
+.circle-check-wrapper {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	cursor: pointer;
+	position: relative;
+}
+
+/* Estilo del circulito visible */
 .circle-check {
 	width: 20px;
 	height: 20px;
-	border: 2px solid var(--gray-light);
 	border-radius: 50%;
-	cursor: pointer;
+	border: 2px solid var(--gray-light);
+	background-color: transparent;
 	transition: all 0.3s ease;
 }
 
+/* Cuando está marcado */
 .circle-check.checked {
 	background-color: var(--primary-orange);
 	border-color: var(--primary-orange);
 	box-shadow: 0 0 4px var(--primary-orange);
 }
 
-.check-icon {
-	color: var(--gray-light);
-	cursor: pointer;
-	transition: all 0.3s ease;
+.exercise-line {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
 }
 
-.check-icon.checked {
+.info-icon {
+	margin-left: 1rem;
+	cursor: pointer;
 	color: var(--primary-orange);
+	transition: transform 0.2s ease;
+	font-size: 1.2rem;
+}
+
+.info-icon:hover {
+	transform: scale(1.2);
 }
 
 .tab-container {
@@ -144,7 +170,17 @@
 
 /* Modal for explanation */
 #exercise-modal {
-	display: none;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	background-color: rgba(0, 0, 0, 0.5);
+	/* fondo oscuro */
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	z-index: 999;
 }
 
 .modal-content {
