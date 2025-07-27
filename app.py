@@ -377,7 +377,7 @@ def results():
     weight_goal = round(weight_diff, 1)
 
     if goal == "get_healthy":
-        duration = 75
+        duration = 10
     else:
         if speed == "As fast as possible (healthy)":
             rate = 1.0 if unit == "kg" else 2.2

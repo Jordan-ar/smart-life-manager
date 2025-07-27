@@ -39,7 +39,6 @@
 				<p id="plan-summary">
 					Goal: {{ fitness_plan.goal.replace('_', ' ').title() if fitness_plan.goal else 'Not set' }}<br>
 					Activity: {{ fitness_plan.activity_level or 'Not set' }}<br>
-					Favorites: {{ fitness_plan.fav_exercises or 'Not set' }}<br>
 					Days per week: {{ fitness_plan.days_per_week or 'Not set' }}<br>
 					Time per day: {{ fitness_plan.time_available or 'Not set' }} min
 				</p>
