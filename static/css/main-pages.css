@@ -85,14 +85,12 @@
 	flex-grow: 1;
 }
 
-/* Oculta el input real */
 .check-icon {
 	opacity: 0;
 	position: absolute;
 	pointer-events: none;
 }
 
-/* Wrapper del check personalizado */
 .circle-check-wrapper {
 	display: flex;
 	align-items: center;
@@ -101,7 +99,6 @@
 	position: relative;
 }
 
-/* Estilo del circulito visible */
 .circle-check {
 	width: 20px;
 	height: 20px;
@@ -111,7 +108,6 @@
 	transition: all 0.3s ease;
 }
 
-/* Cuando está marcado */
 .circle-check.checked {
 	background-color: var(--primary-orange);
 	border-color: var(--primary-orange);

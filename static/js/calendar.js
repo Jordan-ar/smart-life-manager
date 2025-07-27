@@ -1,11 +1,28 @@
-// --- Configuración base del usuario ---
-const timeAvailable = parseInt(userPlan.time_available); // 15, 30 o 60
-const daysPerWeek = parseInt(userPlan.days_per_week); // 2, 4, 6
-const motivation = userPlan.goal.toLowerCase(); // "lose_weight", etc.
+// Initialization of user plan and progress data
+const timeAvailable = parseInt(userPlan.time_available);
+const daysPerWeek = parseInt(userPlan.days_per_week);
+const motivation = userPlan.goal.toLowerCase();
 const userId = JSON.parse(document.getElementById('user-id').textContent);
 
 
-// --- Rutinas simplificadas (solo circuito) ---
+// Routines based on user goals
+const warmup = [
+	"Active march",
+	"Torso twists",
+	"Low-impact jumping jacks",
+	"Shoulder rolls",
+	"Soft high knees",
+	"Walking lunges with torso twist"
+];
+
+const cooldown = [
+	"Deep breath + stretch to the sky",
+	"Runner’s stretch (each side)",
+	"Back and torso stretch",
+	"Arm & shoulder stretch",
+	"Neck stretch + slow breathing"
+];
+
 const routine_lose_weight = [
 	{ name: "Full Body HIIT", circuit: ["Jump squats", "Shoulder taps", "Reverse lunges", "High knees"] },
 	{ name: "Legs & Glutes", circuit: ["Squats", "Glute bridges", "Side lunges", "Wall sit"] },
@@ -33,6 +50,7 @@ const routine_stay_healthy = [
 	{ name: "Yoga Flow + Breathing", circuit: ["Modified sun salutation", "Downward dog to plank", "Back and chest stretch", "Deep breath with spinal twist"] }
 ];
 
+// Descriptions for each exercise
 const exerciseDescriptions = {
 	"Active march": "March in place with your knees lifting slightly and arms swinging naturally. This warms up your whole body and increases your heart rate gradually.",
 	"Alternating side lunges": "Step to the side and bend one knee while keeping the other leg straight. Push back to center and repeat on the other side. Keep your chest lifted and core engaged.",
@@ -111,25 +129,6 @@ const exerciseDescriptions = {
 	"Warrior pose (each side)": "From a lunge stance, turn your back foot slightly out and extend your arms to the sides, gazing forward. Hold and switch sides."
 };
 
-
-// --- Warm-up & Cool down (fijos para todos) ---
-const warmup = [
-	"Active march",
-	"Torso twists",
-	"Low-impact jumping jacks",
-	"Shoulder rolls",
-	"Soft high knees",
-	"Walking lunges with torso twist"
-];
-
-const cooldown = [
-	"Deep breath + stretch to the sky",
-	"Runner’s stretch (each side)",
-	"Back and torso stretch",
-	"Arm & shoulder stretch",
-	"Neck stretch + slow breathing"
-];
-
 // --- Select routine and description based on user goal ---
 let selectedRoutine;
 let baseDescription = "";
@@ -148,24 +147,21 @@ if (motivation === "lose_weight") {
 	baseDescription = "Default plan: HIIT workouts to keep you moving";
 }
 
-
-// --- Día de la semana actual ---
+// Day order and today's name.
 const dayOrder = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const todayName = dayOrder[new Date().getDay() - 1] || "Sun";
 
-// --- Asignación cíclica de rutina semanal ---
+// Function to generate the routine plan
 function generateRoutinePlan(routine, daysPerWeek) {
 	const plan = {};
 	const workoutDays = [];
 
-	// 👉 Elegimos días de la semana bien distribuidos según cantidad deseada
 	const intervals = Math.floor(7 / daysPerWeek);
 	let dayIndex = 0;
 	for (let i = 0; i < daysPerWeek; i++) {
 		workoutDays.push(dayOrder[dayIndex]);
 		dayIndex += intervals;
 	}
-
 	let routineIndex = 0;
 	for (const day of dayOrder) {
 		if (workoutDays.includes(day)) {
@@ -178,22 +174,22 @@ function generateRoutinePlan(routine, daysPerWeek) {
 	return plan;
 }
 
-
 const thisWeek = generateRoutinePlan(selectedRoutine, daysPerWeek);
 
-// --- Guardar rutina en backend ---
+// Save the routine to the backend
 fetch("/save-routine", {
 	method: "POST",
 	headers: { "Content-Type": "application/json" },
 	body: JSON.stringify({ routine: thisWeek })
 });
 
-// --- Renderizado del día ---
+// --- DOM Elements ---
 const days = document.querySelectorAll(".day-circle");
 const subtitle = document.getElementById("plan-subtitle");
 const dayCard = document.getElementById("day-card");
-const exerciseTitle = document.querySelector(".exercise-title");
+// const exerciseTitle = document.querySelector(".exercise-title");
 
+// Function to update the card with exercises for the selected day.
 async function updateCard(dayName) {
 	days.forEach(d => d.classList.remove("active"));
 	const selectedBtn = [...days].find(d => d.dataset.day === dayName);
@@ -205,7 +201,6 @@ async function updateCard(dayName) {
 	const circuitContainer = document.getElementById("circuit-section");
 	const cooldownContainer = document.getElementById("cooldown-section");
 
-	// Limpiar secciones
 	[warmupContainer, circuitContainer, cooldownContainer].forEach(div => div.innerHTML = "");
 
 	if (!selected) {
@@ -215,7 +210,6 @@ async function updateCard(dayName) {
 		return;
 	}
 
-	// Header del día
 	dayCard.querySelector(".card-title").innerHTML = `<i class="fas fa-fire"></i> ${selected.name}`;
 	const subtitleEl = dayCard.querySelector(".card-sub");
 	subtitleEl.textContent = baseDescription;
@@ -235,32 +229,27 @@ async function updateCard(dayName) {
 			</div>
 		`;
 
-		// 👉 Modal event listener
 		const infoIcon = div.querySelector(".info-icon");
 		infoIcon.addEventListener("click", (e) => {
-			e.stopPropagation(); // 🛑 stop bubbling just in case
+			e.stopPropagation();
 			openModal(ex);
 		});
 
 		return div;
 	}
 
-
-
-	// 👉 Función para pedir al backend si ese ejercicio ya fue completado
+	// Function to fetch completion status from the backend
 	async function fetchCompletion(exercise, date) {
 		const res = await fetch(`/get-progress?date=${date}&exercise_name=${encodeURIComponent(exercise)}`);
 		const data = await res.json();
 		return data.completed;
 	}
 
-	// 🧡 Render warm-up
 	for (const ex of warmup) {
 		const isDone = await fetchCompletion(ex, dayName);
 		warmupContainer.appendChild(createCard(ex, dayName, isDone));
 	}
 
-	// 🔥 Render circuito según reps
 	const reps = timeAvailable === 15 ? 1 : timeAvailable === 30 ? 2 : 5;
 	for (let i = 0; i < reps; i++) {
 		for (const ex of selected.circuit) {
@@ -269,7 +258,6 @@ async function updateCard(dayName) {
 		}
 	}
 
-	// 🌈 Render cool down si aplica
 	if (timeAvailable >= 30) {
 		for (const ex of cooldown) {
 			const isDone = await fetchCompletion(ex, dayName);
@@ -277,7 +265,6 @@ async function updateCard(dayName) {
 		}
 	}
 
-	// 🧠 Tabs
 	document.querySelectorAll(".tab-button").forEach(btn => {
 		btn.addEventListener("click", () => {
 			document.querySelectorAll(".tab-button").forEach(b => b.classList.remove("active"));
@@ -286,7 +273,6 @@ async function updateCard(dayName) {
 			const tabTarget = btn.getAttribute("data-target");
 			document.getElementById(tabTarget).classList.remove("hidden");
 
-			// Cambiar subtítulo
 			if (tabTarget === "circuit-section") {
 				subtitleEl.textContent = "Each exercise lasts 2 minutes with 30 seconds of rest.";
 			} else {
@@ -295,7 +281,6 @@ async function updateCard(dayName) {
 		});
 	});
 
-	// ✨ Listeners de los checkboxes
 	document.querySelectorAll('.check-icon').forEach(icon => {
 		icon.addEventListener('change', async () => {
 			const card = icon.closest('.exercise-card');
@@ -305,7 +290,6 @@ async function updateCard(dayName) {
 			if (circle) {
 				circle.classList.toggle("checked", checked);
 			}
-
 
 			const date = icon.dataset.date;
 			const exercise = icon.dataset.exercise;
@@ -320,11 +304,9 @@ async function updateCard(dayName) {
 		});
 	});
 
-	// Verifica si todos los ejercicios están completados y actualiza el mensajito
 	checkIfAllCompleted(dayName);
 }
 
-// --- Check completo ---
 function checkIfAllCompleted(dayName) {
 	const all = [...dayCard.querySelectorAll('.check-icon')];
 	const done = all.every(i => i.checked);
@@ -355,7 +337,6 @@ function openModal(name) {
 	const modal = document.getElementById("exercise-modal");
 	const closeBtn = modal.querySelector(".close-modal");
 
-	// Solo usamos la descripción
 	const description = exerciseDescriptions[name] || "No description available for this exercise.";
 
 	document.getElementById("modal-exercise-name").textContent = name;
@@ -363,17 +344,14 @@ function openModal(name) {
 
 	modal.classList.remove("hidden");
 
-	// Cerrar con la X
 	closeBtn.onclick = () => modal.classList.add("hidden");
 
-	// Cerrar al hacer clic fuera del modal
 	window.onclick = e => {
 		if (e.target === modal) {
 			modal.classList.add("hidden");
 		}
 	};
 }
-
 
 document.addEventListener("DOMContentLoaded", () => {
 	updateCard(todayName);

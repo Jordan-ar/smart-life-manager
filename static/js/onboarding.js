@@ -2,7 +2,8 @@ document.addEventListener("DOMContentLoaded", () => {
 	const steps = Array.from(document.querySelectorAll(".welcome-card"));
 	let currentStep = 0;
 	const answers = {};
-	// 🪄 Precargar respuestas si estamos editando
+
+	// Detect if we're in edit mode
 	if (editMode && existingData) {
 		answers["Motivation"] = existingData.goal;
 		answers["Gender"] = existingData.gender;
@@ -16,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		answers["Activity Level"] = existingData.activity_level;
 
 		const progressBar = document.getElementById("progress-bar");
-		const TOTAL_SEGMENTS = 11; // actual total after removing steps
+		const TOTAL_SEGMENTS = 11;
 		for (let i = 0; i < TOTAL_SEGMENTS; i++) {
 			const segment = document.createElement("div");
 			segment.classList.add("progress-segment");
@@ -30,6 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			});
 		}
 
+		// Function to show steps
 		function showStep(step) {
 			const nextStep = typeof step === "number" ? steps[step] : document.getElementById(step);
 			steps[currentStep].classList.add("hidden");
@@ -43,6 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			if (btn) btn.addEventListener("click", () => showStep(toIndex));
 		}
 
+		// Function to handle option selection steps
 		function handleOptionStep({ stepId, nextBtnId, resultKey, nextStepIndex, backBtnId, backStepIndex }) {
 			const step = document.getElementById(stepId);
 			const options = step.querySelectorAll(".option-btn");
@@ -67,7 +70,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 			handleBackButton(backBtnId, backStepIndex);
 
-			// 🪄 si ya hay valor precargado, marcamos botón y activamos Next
 			if (editMode && answers[resultKey]) {
 				const btnToSelect = step.querySelector(`.option-btn[data-value="${answers[resultKey]}"]`);
 				if (btnToSelect) {
@@ -78,17 +80,16 @@ document.addEventListener("DOMContentLoaded", () => {
 			}
 		}
 
+		// Function to handle input steps
 		function handleInputStep({ inputId, nextBtnId, resultKey, min, max, nextStepIndex, backBtnId, backStepIndex }) {
 			const input = document.getElementById(inputId);
 			const nextBtn = document.getElementById(nextBtnId);
 
-			// 👉 validación normal cuando escribe
 			input.addEventListener("input", () => {
 				const val = parseInt(input.value);
 				nextBtn.disabled = isNaN(val) || val < min || val > max;
 			});
 
-			// 👉 guardar y avanzar
 			nextBtn.addEventListener("click", () => {
 				const val = parseInt(input.value);
 				if (!isNaN(val) && val >= min && val <= max) {
@@ -97,7 +98,6 @@ document.addEventListener("DOMContentLoaded", () => {
 				}
 			});
 
-			// 🪄 auto-habilitar si ya hay respuesta cargada
 			if (editMode && existingData && existingData[resultKey.toLowerCase().replaceAll(" ", "_")]) {
 				const precargado = existingData[resultKey.toLowerCase().replaceAll(" ", "_")];
 				input.value = precargado;
@@ -107,7 +107,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			handleBackButton(backBtnId, backStepIndex);
 		}
 
-
+		// Function to handle toggle unit input steps
 		function handleToggleUnitInputStep({
 			toggleId,
 			unitBtnsSelector,
@@ -138,6 +138,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 			}
 
+			// Input vallidation
 			function validate() {
 				const isValid = validation[currentUnit]();
 				nextBtn.disabled = !isValid;
@@ -153,7 +154,6 @@ document.addEventListener("DOMContentLoaded", () => {
 			btns.forEach(btn => {
 				btn.addEventListener("click", () => toggleUnit(btn.dataset.unit));
 			});
-			// 🪄 Si estamos editando y ya hay datos, intentamos validar automáticamente
 			if (editMode && existingData) {
 				validate();
 			}
@@ -165,9 +165,9 @@ document.addEventListener("DOMContentLoaded", () => {
 			});
 
 			handleBackButton(backBtnId, backStepIndex);
-			toggleUnit(currentUnit); // inicialización por defecto
+			toggleUnit(currentUnit);
 
-			// 🪄 Si estamos editando, activamos la unidad correcta, llenamos los inputs y validamos
+			// Pre-fill inputs if in edit mode
 			if (editMode && existingData) {
 				const keyBase = resultKey.toLowerCase().replace(" ", "_");
 				let unit = null;
@@ -179,8 +179,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				}
 
 				if (unit) {
-					toggleUnit(unit); // 🔁 cambia visualmente
-					// Esperamos un pelín a que se muestre el grupo correcto y luego seteamos los valores
+					toggleUnit(unit);
 					setTimeout(() => {
 						if (keyBase === "height") {
 							if (unit === "imperial") {
@@ -210,7 +209,6 @@ document.addEventListener("DOMContentLoaded", () => {
 							answers[resultKey] = existingData.goal_weight;
 						}
 
-						// 🔥 Disparar validación visual
 						inputFields[unit].forEach(id => {
 							const input = document.getElementById(id);
 							if (input) input.dispatchEvent(new Event("input", { bubbles: true }));
@@ -220,8 +218,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 				}
 			}
-
-
 		}
 
 		document.getElementById("start-btn").addEventListener("click", () => showStep(1));
@@ -256,7 +252,6 @@ document.addEventListener("DOMContentLoaded", () => {
 			backStepIndex: 3
 		});
 
-
 		handleToggleUnitInputStep({
 			toggleId: "weight-toggle",
 			unitBtnsSelector: ".toggle-btn",
@@ -281,7 +276,6 @@ document.addEventListener("DOMContentLoaded", () => {
 			backBtnId: "back-btn-5",
 			backStepIndex: 4
 		});
-
 
 		handleToggleUnitInputStep({
 			toggleId: "goal-weight-toggle",
@@ -311,10 +305,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		handleOptionStep({ stepId: "question-step-7", nextBtnId: "next-btn-7", resultKey: "Goal Speed", nextStepIndex: 8, backBtnId: "back-btn-7", backStepIndex: 6 });
 		handleOptionStep({ stepId: "question-step-8", nextBtnId: "next-btn-8", resultKey: "Training Days", nextStepIndex: 9, backBtnId: "back-btn-8", backStepIndex: 7 });
 		handleOptionStep({ stepId: "question-step-9", nextBtnId: "next-btn-9", resultKey: "Daily Time", nextStepIndex: 10, backBtnId: "back-btn-9", backStepIndex: 8 });
-
-
 		handleOptionStep({ stepId: "question-step-10", nextBtnId: "next-btn-10", resultKey: "Activity Level", nextStepIndex: "final-step", backBtnId: "back-btn-10", backStepIndex: 9 });
-
 
 		document.getElementById("next-btn-final").addEventListener("click", () => {
 			const formatted = {
@@ -354,8 +345,5 @@ document.addEventListener("DOMContentLoaded", () => {
 					alert("Something went wrong. Try again!");
 				});
 		});
-
-
 	}
-
 });

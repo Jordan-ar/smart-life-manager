@@ -13,20 +13,21 @@
 	<body>
 		<div class="width-container">
 
+			<!-- Header -->
 			<div class="card profile-section">
 				<h1>My Profile</h1>
 				<img id="profile-pic" src="{{ profile_pic or '/static/assets/profile-picture.jpg' }}" alt="Profile Photo">
 
+				<!-- Change photo button -->
 				<button class="btn primary small-btn" onclick="togglePhotoOptions()">Change Photo </button>
-
 				<div id="photo-options" class="photo-options hidden">
 					<button class="btn secondary" onclick="openCameraModal()">Take a Photo</button>
 					<button class="btn secondary" onclick="triggerFileUpload()">Upload from Files</button>
 				</div>
-
 				<input type="file" id="profileImageInput" accept="image/*" hidden>
 			</div>
 
+			<!-- Account details -->
 			<div class="card account">
 				<label for="name" class="sr-only">Name</label>
 				<input type="text" class="form-input" id="user-name" value="{{ name }}" readonly>
@@ -34,6 +35,7 @@
 				<a href="{{ url_for('logout') }}" class="btn full-btn secondary">Log Out</a>
 			</div>
 
+			<!-- Fitness plan summary -->
 			<div class="card">
 				<label class="card-title">My Fitness Plan</label>
 				<p id="plan-summary">
@@ -45,12 +47,14 @@
 				<a href="{{ url_for('onboarding', edit='true') }}" class="btn full-btn primary">Edit Preferences</a>
 			</div>
 
+			<!-- Feedback section -->
 			<div class="card">
 				<label class="card-title">Want to leave feedback?</label>
 				<button class="btn full-btn secondary" onclick="openFeedbackModal()">Send Feedback</button>
 			</div>
 		</div>
 
+		<!-- Camera Modal -->
 		<div class="modal hidden" id="cameraModal">
 			<div class="camera-modal-content">
 				<video id="video" autoplay></video>
@@ -62,6 +66,7 @@
 			</div>
 		</div>
 
+		<!-- Feedback Modal -->
 		<div class="modal" id="feedback-modal">
 			<div class="feedback-modal-content">
 				<span class="close-modal" onclick="closeFeedbackModal()">&times;</span>

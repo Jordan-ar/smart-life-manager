@@ -1,5 +1,4 @@
 // Toggle password visibility for all password fields
-
 document.addEventListener("DOMContentLoaded", () => {
 	const toggleButtons = document.querySelectorAll(".toggle-password");
 
@@ -48,6 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		});
 	}
 });
+
 // functions for feedback modal
 function openFeedbackModal() {
 	document.getElementById('feedback-modal').style.display = 'flex';
@@ -113,6 +113,7 @@ function takePhoto() {
 	closeCameraModal();
 }
 
+// Handle profile image upload
 document.getElementById('profileImageInput').addEventListener('change', function () {
 	const file = this.files[0];
 	if (file) {
@@ -135,6 +136,7 @@ function triggerFileUpload() {
 	togglePhotoOptions();
 }
 
+// Upload image to server
 function uploadImageToServer(base64Image) {
 	fetch("/upload-profile-photo", {
 		method: "POST",
@@ -156,58 +158,3 @@ function uploadImageToServer(base64Image) {
 			alert("Could not upload image.");
 		});
 }
-
-document.addEventListener("DOMContentLoaded", () => {
-	fetch("/dashboard-data")
-		.then(res => res.json())
-		.then(data => {
-			console.log("📊 Dashboard Data:", data);
-			if (!data.success) return;
-
-			// 1. Update Progress Circle
-			const circle = document.querySelector(".circle-progress");
-			const percent = data.percentage_today;
-			circle.style.background = `conic-gradient(#ff7f50 ${percent * 3.6}deg, #e6e6e6 0deg)`;
-			circle.querySelector("h2").textContent = `${percent}%`;
-
-			// 2. Update Today's Activity
-			const calorieElem = document.getElementById("calories-today");
-			if (calorieElem) calorieElem.textContent = `${data.calories_today} kcal`;
-
-			const listElem = document.getElementById("today-exercises-list");
-			if (listElem && Array.isArray(data.today_exercises)) {
-				listElem.innerHTML = "";
-				data.today_exercises.slice(0, 5).forEach(ex => {
-					const li = document.createElement("li");
-					li.textContent = ex;
-					listElem.appendChild(li);
-				});
-			}
-
-			// 3. Update Overall Calories
-			const totalElem = document.getElementById("calories-total");
-			if (totalElem) totalElem.textContent = `${data.calories_total} kcal`;
-
-			// 4. Update Weight Progress Circle
-			const weightCircle = document.querySelector(".circle-weight");
-			if (weightCircle) {
-				weightCircle.style.background = `conic-gradient(#32cd32 ${data.weight_progress * 3.6}deg, #e6e6e6 0deg)`;
-				weightCircle.querySelector("h2").textContent = `${data.weight_progress}%`;
-			}
-
-			// 5. Update Weekly Streak Stars
-			const starsContainer = document.getElementById("weekly-stars");
-			if (starsContainer) {
-				starsContainer.innerHTML = "";
-				for (let i = 1; i <= data.streak_target; i++) {
-					const star = document.createElement("i");
-					star.classList.add("fas", "fa-star");
-					if (i <= data.streak_count) {
-						star.classList.add("filled");
-					}
-					starsContainer.appendChild(star);
-				}
-			}
-		})
-		.catch(err => console.error("Failed to load dashboard data", err));
-});
