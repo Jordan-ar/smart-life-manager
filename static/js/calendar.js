@@ -2,6 +2,8 @@
 const timeAvailable = parseInt(userPlan.time_available); // 15, 30 o 60
 const daysPerWeek = parseInt(userPlan.days_per_week); // 2, 4, 6
 const motivation = userPlan.goal.toLowerCase(); // "lose_weight", etc.
+const userId = JSON.parse(document.getElementById('user-id').textContent);
+
 
 // --- Rutinas simplificadas (solo circuito) ---
 const routine_lose_weight = [
@@ -318,7 +320,7 @@ function checkIfAllCompleted(dayName) {
 
 	if (done && all.length > 0) {
 		msg.style.display = 'block';
-		localStorage.setItem(`highlight-${dayName}`, 'true');
+		localStorage.setItem(`${userId}-highlight-${dayName}`, 'true');
 		const activeDay = document.querySelector('.day-circle.active');
 		if (activeDay) {
 			activeDay.innerHTML = '<i class="fas fa-check"></i>';
@@ -365,7 +367,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	updateCard(todayName);
 	days.forEach(day => {
 		const d = day.dataset.day;
-		if (localStorage.getItem(`highlight-${d}`) === 'true') {
+		if (localStorage.getItem(`${userId}-highlight-${d}`) === 'true') {
 			day.innerHTML = '<i class="fas fa-check"></i>';
 			day.style.backgroundColor = 'var(--primary-orange)';
 			day.style.color = 'white';

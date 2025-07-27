@@ -255,7 +255,8 @@ def calendar():
     plan = session.get("fitness_plan")
     if not plan:
         flash("Please complete the onboarding first.")
-        return render_template("calendar.html", user_plan={}, progress={})
+        return render_template("calendar.html", user_plan={}, progress={}, user_id=session["user_id"])
+
 
     days_map = { "1-2": 2, "3-4": 4, "5-6": 6 }
     raw_days = plan.get("days_per_week", "3-4")
@@ -291,7 +292,7 @@ def calendar():
         f"{row['date']}|{row['exercise_name']}": bool(row['completed']) for row in rows
     }
 
-    return render_template("calendar.html", user_plan=user_plan, progress=weekly_progress)
+    return render_template("calendar.html", user_plan=user_plan, progress=weekly_progress, user_id=user_id)
 
 
 @app.route('/profile')
