@@ -11,10 +11,6 @@ Routine options for 15, 30, or 60 minutes
 
 Setup Instructions:
 
-Clone the repository:
-git clone https://github.com/your-username/smart-life-manager.git
-cd smart-life-manager
-
 Create and activate a virtual environment:
 python3 -m venv venv
 source venv/bin/activate       # On Windows: venv\Scripts\activate.bat
