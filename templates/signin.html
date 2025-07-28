@@ -17,6 +17,16 @@
 			<div class="welcome-card">
 				<h1>Sign in to your account</h1>
 				<p>Let's continue your fitness journey</p>
+				{% with messages = get_flashed_messages() %}
+					{% if messages %}
+						<div class="flash-message">
+							{% for message in messages %}
+								<p>{{ message }}</p>
+							{% endfor %}
+						</div>
+					{% endif %}
+				{% endwith %}
+
 				<!-- Sign In Form -->
 				<form method="POST" action="{{ url_for('signin') }}">
 					<div>

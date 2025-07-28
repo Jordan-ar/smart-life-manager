@@ -267,6 +267,7 @@ def onboarding():
 @app.route('/logout')
 def logout():
     session.clear()
+    flash("You've Been Signed Out Successfully!")
     return redirect(url_for('signin'))
 
 # Reset password page route (GET)

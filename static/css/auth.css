@@ -476,4 +476,18 @@ input[type="checkbox"] {
   opacity: 1;
   margin-top: 0.25rem;
 }
+.flash-message {
+  background-color: #eaf6ff;
+  border: 1px solid #b6e0fe;
+  padding: 10px 15px;
+  margin-bottom: 15px;
+  color: #0077cc;
+  border-radius: 4px;
+  text-align: center;
+
+}
+
+
+
+
 
