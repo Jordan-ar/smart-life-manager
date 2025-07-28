@@ -7,6 +7,7 @@ import json
 import glob
 import base64
 import sqlite3
+import re
 from datetime import datetime, timedelta
 
 # Third-party libraries
@@ -15,17 +16,23 @@ from flask_session import Session
 from flask_dance.contrib.google import make_google_blueprint, google
 from passlib.hash import bcrypt
 from dotenv import load_dotenv
+from flask_mail import Mail, Message
+from itsdangerous import URLSafeTimedSerializer
+from flask import Flask, request, redirect, url_for, render_template, flash
 
 # App configuration start.
 load_dotenv()
 
 app = Flask(__name__)
+app.secret_key = os.getenv("SECRET_KEY")
+
+s = URLSafeTimedSerializer(app.secret_key)
+
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SESSION_PERMANENT'] = False
 Session(app)
 
 # Google OAuth setup
-app.secret_key = os.getenv("SECRET_KEY")
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 google_bp = make_google_blueprint(
@@ -42,6 +49,15 @@ google_bp = make_google_blueprint(
 
 app.register_blueprint(google_bp, url_prefix="/login")
 
+# Mail configuration (Gmail example)
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = os.getenv("MAIL_USERNAME")
+app.config['MAIL_PASSWORD'] = os.getenv("MAIL_PASSWORD")
+
+mail = Mail(app)
+
 # Database setup
 DB = 'instance/smartfit.db'
 def init_db():
@@ -54,7 +70,8 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             email TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL
+            password TEXT NOT NULL,
+            is_confirmed INTEGER DEFAULT 0
         )
     ''')
 
@@ -168,6 +185,12 @@ def signup():
             flash('Passwords do not match.')
             return redirect(url_for('signup'))
 
+        # Enforce strong password criteria
+        pattern = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$'
+        if not re.match(pattern, password):
+            flash("Password must be at least 8 characters long and include one uppercase letter, one lowercase letter, one number, and one symbol.")
+            return redirect(url_for('signup'))
+
         hashed_password = bcrypt.hash(password)
 
         conn = sqlite3.connect(DB)
@@ -246,10 +269,84 @@ def logout():
     session.clear()
     return redirect(url_for('signin'))
 
-# Reset password route
-@app.route('/reset-password')
+# Reset password page route (GET)
+@app.route('/reset-password', methods=['GET'])
 def reset_password():
     return render_template('reset-password.html')
+
+# Reset-Password Route
+@app.route('/send-reset-email', methods=['POST'])
+def send_reset_email():
+    email = request.form['email']
+
+    conn = sqlite3.connect(DB)
+    c = conn.cursor()
+    c.execute("SELECT id FROM users WHERE email = ?", (email,))
+    user = c.fetchone()
+    conn.close()
+
+    if user:
+        token = s.dumps(email, salt='password-reset-salt')
+        reset_url = url_for('reset_password_token', token=token, _external=True)
+
+        try:
+            msg = Message("Reset Your Password - Smart Fitness Planner",
+                          sender=app.config['MAIL_USERNAME'],
+                          recipients=[email])
+            msg.body = f"""Hi,
+
+We received a request to reset your password.
+
+Click the link below to reset it:
+{reset_url}
+
+If you didn’t request this, you can safely ignore this email.
+"""
+            mail.send(msg)
+        except Exception as e:
+            print("Email sending failed:", e)
+
+    # Flash the same message regardless of user existence
+    flash("If that email is registered, a reset link has been sent.")
+    return redirect(url_for('reset_password'))
+
+
+@app.route('/reset-password-confirm/<token>', methods=['GET', 'POST'])
+def reset_password_token(token):
+    try:
+        email = s.loads(token, salt='password-reset-salt', max_age=3600)  # 1 hour expiry
+    except Exception as e:
+        flash("The reset link is invalid or has expired.")
+        return redirect(url_for('reset_password'))
+
+    if request.method == 'POST':
+        password = request.form['password']
+        confirm_password = request.form['confirm_password']
+
+        if password != confirm_password:
+            flash("Passwords do not match.")
+            return redirect(request.url)
+
+        # Enforce strong password
+        pattern = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$'
+        if not re.match(pattern, password):
+            flash("Password must be at least 8 characters long and include uppercase, lowercase, number, and symbol.")
+            return redirect(request.url)
+
+        hashed = bcrypt.hash(password)
+
+        conn = sqlite3.connect(DB)
+        c = conn.cursor()
+        c.execute("UPDATE users SET password = ? WHERE email = ?", (hashed, email))
+        conn.commit()
+        conn.close()
+
+        flash("Your password has been updated. Please sign in.")
+        return redirect(url_for('signin'))
+
+    return render_template('reset-password-confirm.html')
+
+
 
 # Calendar route
 @app.route("/calendar")

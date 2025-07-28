@@ -455,3 +455,25 @@ input[type="checkbox"] {
 	border-radius: 10px;
 	text-align: left;
 }
+
+.input-error {
+  font-size: 0.75rem;
+  color: #f44336;
+  text-align: left;
+  padding-left: 0.25rem;
+
+  visibility: hidden;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.2s ease, opacity 0.2s ease;
+  opacity: 0;
+  margin: 0;
+}
+
+.input-error.active {
+  visibility: visible;
+  max-height: 40px; 
+  opacity: 1;
+  margin-top: 0.25rem;
+}
+
