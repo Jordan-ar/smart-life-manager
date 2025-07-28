@@ -477,14 +477,17 @@ input[type="checkbox"] {
   margin-top: 0.25rem;
 }
 .flash-message {
-  background-color: #eaf6ff;
-  border: 1px solid #b6e0fe;
-  padding: 10px 15px;
-  margin-bottom: 15px;
-  color: #0077cc;
-  border-radius: 4px;
+  background: linear-gradient(135deg, #1e1e2f, #2a2a3d);
+  border: 1px solid #ff7f50; 
+  padding: 12px 20px;
+  margin-bottom: 8px;
+  color: #ffbca9; 
+  border-radius: 8px;
+  font-weight: 500;
+  box-shadow: 0 0 10px rgba(255, 127, 80, 0.5);
   text-align: center;
-
+  font-size: 1rem;
+  transition: all 0.3s ease-in-out;
 }
 
 
